@@ -1,4 +1,4 @@
-const User = require("../schemas/User");
+import User from "../schemas/User";
 
 import { Command } from "../structures/Command";
 
@@ -6,12 +6,12 @@ export default new Command({
 	name: "leaderboard-ranked",
 	description: "Get all the players from best elo to worst from Ranked Games",
 
-	run: async ({interaction}) => {
+	run: async ({ interaction }) => {
 		var users = await User.find({});
 		users.sort((a, b) => b.elorating - a.elorating);
 
 		// Only show users that have actually played a ranked game.
-		users = users.filter(user => user.gamehistory.length > 0);
+		users = users.filter((user) => user.gamehistory.length > 0);
 
 		var playernames = [];
 		var elorating = [];

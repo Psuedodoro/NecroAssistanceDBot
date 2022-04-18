@@ -1,4 +1,4 @@
-const User = require("../schemas/User");
+import User from "../schemas/User";
 
 import { Command } from "../structures/Command";
 
@@ -36,7 +36,7 @@ export default new Command({
 			const userPfp = user.displayAvatarURL();
 
 			let past10games;
-			var formattedHistory = [];
+			var formattedHistory: any[] | string = [];
 
 			if (userExists.gamehistory.length === 0) {
 				past10games = "No past games.";
@@ -61,7 +61,7 @@ export default new Command({
 				formattedHistory = String(past10games.join(" "));
 			}
 
-			var lbpos = userExists.lbpos;
+			var lbpos: string | number = userExists.lbpos;
 
 			if (lbpos === 0) {
 				lbpos = "?";
@@ -70,7 +70,6 @@ export default new Command({
 			interaction.reply({
 				embeds: [
 					{
-						type: "rich",
 						title: `${user.username} [${lbpos}]`,
 						description: `Unranked\nGames Played - ${userExists.gamesPlayed}`,
 						color: 0x3498db,
@@ -82,9 +81,10 @@ export default new Command({
 							},
 							{
 								name: `**Win %**`,
-								value: `${
-									(userExists.wins / userExists.gamesPlayed).toFixed(1) * 100
-								}%`,
+								value: `${(
+									(userExists.wins / userExists.gamesPlayed) *
+									100
+								).toFixed(1)}%`,
 								inline: true,
 							},
 							{

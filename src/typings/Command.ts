@@ -7,13 +7,13 @@ import {
 } from "discord.js";
 import { ExtendedClient } from "../structures/Client";
 
-export interface ExtendedInteraction extends CommandInteraction {
+/* export interface ExtendedInteraction extends CommandInteraction {
 	member: GuildMember;
-}
+} */
 
 interface RunOptions {
 	client: ExtendedClient;
-	interaction: ExtendedInteraction;
+	interaction: CommandInteraction;
 	args: CommandInteractionOptionResolver;
 }
 

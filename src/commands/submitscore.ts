@@ -1,10 +1,10 @@
 import { Command } from "../structures/Command";
 
-const EloRank = require("elo-rank");
+import EloRank from "elo-rank";
 const elo = new EloRank(25);
 
-const RankedGame = require("../schemas/RankedGame");
-const User = require("../schemas/User");
+import RankedGame from "../schemas/RankedGame";
+import User from "../schemas/User";
 
 export default new Command({
 	name: "submit-score",

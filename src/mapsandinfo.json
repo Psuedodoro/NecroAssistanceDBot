@@ -1,0 +1,37 @@
+[
+	{
+		"name": "Fracture",
+		"image":
+			"https://staticg.sportskeeda.com/editor/2021/11/825dc-16373732370395-1920.jpg"
+	},
+	{
+		"name": "Breeze",
+		"image":
+			"https://gamepunk.net/wp-content/uploads/2021/07/Featured-Image-2-1160x680.png"
+	},
+	{
+		"name": "Icebox",
+		"image":
+			"https://imageio.forbes.com/specials-images/imageserve/5f8082e3fdf2b3fab60a2999/The-Valorant-map-Icebox-/960x0.jpg?fit=bounds&format=jpg&width=960"
+	},
+	{
+		"name": "Bind",
+		"image":
+			"https://static.wikia.nocookie.net/valorant/images/2/23/Loading_Screen_Bind.png/revision/latest?"
+	},
+	{
+		"name": "Haven",
+		"image":
+			"https://cdn1.dotesports.com/wp-content/uploads/2020/06/30204333/Loading_Screen_Haven.png"
+	},
+	{
+		"name": "Split",
+		"image":
+			"https://cdn1.dotesports.com/wp-content/uploads/2021/01/20100802/Loading_Screen_Split.png"
+	},
+	{
+		"name": "Ascent",
+		"image":
+			"https://cdn1.dotesports.com/wp-content/uploads/2020/06/02100203/EZddUWTWAAAf3nV.jpg"
+	}
+]

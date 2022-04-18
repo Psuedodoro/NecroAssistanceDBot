@@ -1,6 +1,4 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
-
-const mapsAndInfo = require("../mapsandinfo.json");
+import mapsAndInfo from "../mapsandinfo.json";
 
 import { Command } from "../structures/Command";
 

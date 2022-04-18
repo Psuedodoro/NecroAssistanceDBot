@@ -1,4 +1,4 @@
-const User = require("../schemas/User");
+import User from "../schemas/User";
 
 import { CommandInteraction } from "discord.js";
 import { Command } from "../structures/Command";

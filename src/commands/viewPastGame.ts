@@ -1,5 +1,5 @@
-const RankedGame = require("../schemas/RankedGame");
-const MapsAndInfo = require("../mapsandinfo.json");
+import RankedGame from "../schemas/RankedGame";
+import MapsAndInfo from "../mapsandinfo.json";
 
 import { Command } from "../structures/Command";
 
@@ -41,9 +41,7 @@ export default new Command({
 
 		const { teamA, teamB, gameMap, gameRef } = game;
 
-		const mapImageURL = MapsAndInfo.find(
-			(map) => map.mapName === gameMap
-		).image;
+		const mapImageURL = MapsAndInfo.find((map) => map.name === gameMap).image;
 
 		interaction.reply({
 			embeds: [

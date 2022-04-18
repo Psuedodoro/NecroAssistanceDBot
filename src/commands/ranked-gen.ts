@@ -1,6 +1,7 @@
-const mapsAndInfo = require("../mapsandinfo.json");
-const RankedGame = require("../schemas/RankedGame");
-const User = require("../schemas/User");
+import mapsAndInfo from "../mapsandinfo.json";
+
+import RankedGame from "../schemas/RankedGame";
+import User from "../schemas/User";
 
 import { Command } from "../structures/Command";
 
@@ -17,7 +18,10 @@ export default new Command({
 	],
 
 	run: async ({ interaction }) => {
-		//! TODO: Add verification so only people that are registered in the DB can play/use this command.
+		// TODO: Find out why this makes the code on line 156 and 165 works.
+		//! LEARN ABOUT TYPE GUARDS IN TYPESCRIPT
+		if (!interaction.inCachedGuild()) return;
+
 		const players = interaction.options
 			.getString("players")
 			.match(/<@!?(\d+)>/g);
@@ -86,7 +90,6 @@ export default new Command({
 			interaction.channel.send({
 				embeds: [
 					{
-						type: "rich",
 						title: `A **Ranked** Game Has Been Generated On ${selectedmapname}!`,
 						description: `**This game __will__ affect ELO rating scores.**\nGood luck, and may the best team win!`,
 						color: 0x09ff00,
@@ -134,7 +137,7 @@ export default new Command({
 					user.suspendedUntil === null)
 			) {
 				interaction.reply(
-					`${user.username} is suspended and cannot play ranked games.\nSuspension reason: ${user.suspendedReason}`
+					`<@${user.discordID}> is suspended and cannot play ranked games.\nSuspension reason: ${user.suspendedReason}`
 				);
 				return;
 			} else {
