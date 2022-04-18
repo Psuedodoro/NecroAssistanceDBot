@@ -24,6 +24,7 @@ export class ExtendedClient extends Client {
 		this.registerModules();
 		this.login(token);
 	}
+
 	async importFile(filePath: string) {
 		return (await import(filePath))?.default;
 	}
