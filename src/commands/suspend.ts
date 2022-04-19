@@ -44,7 +44,7 @@ export default new Command({
 
 		if (suspendedLength === 0) {
 			await interaction.reply(
-				`${userName} has been permanently suspended from Ranked Games`
+				`${userName} has been **permanently suspended** from Ranked Games`
 			);
 
 			userExists.suspended = true;
@@ -64,7 +64,7 @@ export default new Command({
 			await userExists.save();
 
 			await interaction.reply(
-				`${userName} has been suspended from Ranked Games for ${suspendedLength} minutes`
+				`${userName} has been **suspended** from Ranked Games for ${suspendedLength} minutes`
 			);
 		}
 	},

@@ -20,10 +20,22 @@ export default new Command({
 			discordID: user.id,
 		});
 
+		const interactionUser = await User.findOne({
+			discordID: interaction.user.id,
+		});
+
 		if (userExists.suspended === true) {
 			interaction.reply(
 				`${user.username} has been suspended from Ranked Games and cannot use this command.`
 			);
+			return;
+		}
+
+		if (interactionUser.suspended === true) {
+			interaction.reply({
+				content: `You have been suspended from Ranked Games and cannot use this command.`,
+				ephemeral: true,
+			});
 			return;
 		}
 
