@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-interface IRankedGame {
+export interface IRankedGame {
 	gameRef: string;
 	teamA: string[];
 	teamB: string[];

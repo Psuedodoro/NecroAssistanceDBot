@@ -1,5 +1,5 @@
 import mapsAndInfo from "../mapsandinfo.json";
-
+import stdCommandVerification from "../security/commandRunVerification";
 import RankedGame from "../schemas/RankedGame";
 import User from "../schemas/User";
 
@@ -18,9 +18,19 @@ export default new Command({
 	],
 
 	run: async ({ interaction }) => {
-		// TODO: Find out why this makes the code on line 156 and 165 works.
-		//! LEARN ABOUT TYPE GUARDS IN TYPESCRIPT
 		if (!interaction.inCachedGuild()) return;
+
+		const interactionUserFromDB = await User.findOne({
+			discordID: interaction.user.id,
+		});
+
+		//! TODO: FIX THIS SHIT IT AINT WORKING
+		/* if (!stdCommandVerification(interaction, interactionUserFromDB)) {
+			interaction.reply(
+				"You are suspended from using all commands to do with the ranked game system."
+			);
+			return;
+		} */
 
 		const players = interaction.options
 			.getString("players")

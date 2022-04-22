@@ -1,6 +1,6 @@
 import mapsAndInfo from "../mapsandinfo.json";
-
 import { Command } from "../structures/Command";
+import stdCommandVerification from "../security/commandRunVerification";
 
 export default new Command({
 	name: "generate-game",
