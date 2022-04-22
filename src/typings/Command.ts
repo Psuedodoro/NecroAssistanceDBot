@@ -1,4 +1,6 @@
 import {
+	ApplicationCommand,
+	ApplicationCommandPermissionData,
 	ChatInputApplicationCommandData,
 	CommandInteraction,
 	CommandInteractionOptionResolver,
@@ -21,5 +23,6 @@ type RunFunction = (options: RunOptions) => any;
 
 export type CommandType = {
 	userPermissions?: PermissionResolvable[];
+	commandPermissions?: ApplicationCommandPermissionData[];
 	run: RunFunction;
 } & ChatInputApplicationCommandData;

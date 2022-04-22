@@ -26,5 +26,5 @@ export default new Event("ready", async () => {
 
 	command.permissions.set({ permissions });
 
-	console.log("📜 Permissions updated for submit commands");
+	console.log("🚨 Permissions updated for submit commands");
 });
