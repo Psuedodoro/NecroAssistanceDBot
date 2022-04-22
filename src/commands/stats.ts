@@ -1,3 +1,4 @@
+import { client } from "..";
 import User from "../schemas/User";
 
 import { Command } from "../structures/Command";
@@ -26,14 +27,18 @@ export default new Command({
 
 		if (userExists.suspended === true) {
 			interaction.reply(
-				`${user.username} has been suspended from Ranked Games and cannot use this command.`
+				`${user.username} has been suspended from Ranked Games and is currently voided from the leaderboard and ranked play.\nSuspension reason: ${userExists.suspendedReason}`
 			);
 			return;
 		}
 
 		if (interactionUser.suspended === true) {
+			const interactionUsername = client.users.cache.find(
+				(user) => user.id === interactionUser.discordID
+			);
+
 			interaction.reply({
-				content: `You have been suspended from Ranked Games and cannot use this command.`,
+				content: `${interactionUsername} has been suspended from Ranked Games and cannot use this command.\nSuspension reason: ${interactionUser.suspendedReason}`,
 				ephemeral: true,
 			});
 			return;
