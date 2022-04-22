@@ -21,6 +21,14 @@ export default new Command({
 			discordID: user.id,
 		});
 
+		if (!userExists) {
+			interaction.reply(
+				"User has not registered!\nUse /register now to play ranked games!"
+			);
+
+			return;
+		}
+
 		const interactionUser = await User.findOne({
 			discordID: interaction.user.id,
 		});
@@ -53,7 +61,7 @@ export default new Command({
 			const userPfp = user.displayAvatarURL();
 
 			let past10games;
-			var formattedHistory: any[] | string = [];
+			var formattedHistory: string[] | string = [];
 
 			if (userExists.gamehistory.length === 0) {
 				past10games = "No past games.";

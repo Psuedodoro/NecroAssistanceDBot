@@ -127,6 +127,7 @@ export default new Command({
 					1,
 					personA.elorating
 				);
+
 				personB.elorating = elo.updateRating(
 					expectedScoreB,
 					0,
@@ -218,8 +219,8 @@ export default new Command({
 					personB.elorating += 8;
 				}
 
-				personA.ratingChange = personAEloRatingBefore - personA.elorating;
-				personB.ratingChange = personBEloRatingBefore - personB.elorating;
+				personA.ratingChange = personA.elorating - personAEloRatingBefore;
+				personB.ratingChange = personB.elorating - personBEloRatingBefore;
 
 				personA.save();
 				personB.save();
