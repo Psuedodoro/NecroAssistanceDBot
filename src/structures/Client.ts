@@ -38,20 +38,24 @@ export class ExtendedClient extends Client {
 			const guildRegisteredCommands = await guild?.commands.set(commands);
 
 			//* Updates all permissions for all commands with a commandPermissions option array
-			const fullPermissions = guildRegisteredCommands.map((command) => {
-				const storedCommand = this.commands.find(
-					(cmd) => cmd.name === command.name
-				);
+			const fullPermissions = guildRegisteredCommands
+				.map((command) => {
+					const storedCommand = this.commands.find(
+						(cmd) => cmd.name === command.name
+					);
 
-				return {
-					id: command.id,
-					permissions: storedCommand.commandPermissions,
-				};
-			});
+					return {
+						id: command.id,
+						permissions: storedCommand.commandPermissions,
+					};
+				})
+				.filter((command) => command.permissions);
 
 			guild.commands.permissions.set({
 				fullPermissions: fullPermissions,
 			});
+
+			console.log("🚨 Command permissions have been updated.");
 		} else {
 			const applicationRegisteredCommands =
 				await this.application?.commands.set(commands);
