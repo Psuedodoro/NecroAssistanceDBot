@@ -31,10 +31,25 @@ export class ExtendedClient extends Client {
 
 	async registerCommands({ commands, guildId }: RegisterCommandsOptions) {
 		if (guildId) {
-			this.guilds.cache.get(guildId)?.commands.set(commands);
-			console.log(`Registering commands to ${guildId}`);
+			console.log(`📜 Registering commands to ${guildId}`);
+			const guild = await this.guilds.cache.get(guildId);
+
+			const guildRegisteredCommands = await guild?.commands.set(commands);
+
+			const fullPermissions = GuildApplicationCommandPermissi guildRegisteredCommands.map((command) => {
+				const storedCommand = this.commands.find(
+					(cmd) => cmd.name === command.name
+				);
+
+				return { id: command.id, permissions: storedCommand.userPermissions };
+			});
+
+			guild.commands.permissions.set({
+				fullPermissions: fullPermissions,
+			});
 		} else {
-			this.application?.commands.set(commands);
+			const applicationRegisteredCommands =
+				await this.application?.commands.set(commands);
 			console.log("Registering global commands");
 		}
 	}
