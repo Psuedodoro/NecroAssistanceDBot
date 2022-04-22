@@ -1,5 +1,6 @@
 import {
 	ApplicationCommandDataResolvable,
+	ApplicationCommandPermissionData,
 	Client,
 	ClientEvents,
 	Collection,
@@ -36,12 +37,16 @@ export class ExtendedClient extends Client {
 
 			const guildRegisteredCommands = await guild?.commands.set(commands);
 
-			const fullPermissions = GuildApplicationCommandPermissi guildRegisteredCommands.map((command) => {
+			//* Updates all permissions for all commands with a commandPermissions option array
+			const fullPermissions = guildRegisteredCommands.map((command) => {
 				const storedCommand = this.commands.find(
 					(cmd) => cmd.name === command.name
 				);
 
-				return { id: command.id, permissions: storedCommand.userPermissions };
+				return {
+					id: command.id,
+					permissions: storedCommand.commandPermissions,
+				};
 			});
 
 			guild.commands.permissions.set({
