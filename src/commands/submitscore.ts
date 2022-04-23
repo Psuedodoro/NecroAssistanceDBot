@@ -95,149 +95,98 @@ export default new Command({
 		teamAUsers.sort((a, b) => a.elorating - b.elorating);
 		teamBUsers.sort((a, b) => a.elorating - b.elorating);
 
-		if (winningTeam === "team-a") {
-			for (let i = 0; i < teamAUsers.length; i++) {
-				var personA = teamAUsers[i];
-				var personB = teamBUsers[i];
+		//* Actual code to change scores etc
+		for (let i = 0; i < teamAUsers.length; i++) {
+			const userA = teamAUsers[i];
+			const userB = teamBUsers[i];
 
-				const personAEloRatingBefore = personA.elorating;
-				const personBEloRatingBefore = personB.elorating;
+			userA.gamesPlayed++;
+			userB.gamesPlayed++;
 
-				personA.gamesPlayed++;
-				personB.gamesPlayed++;
+			userA.ratingBefore = userA.elorating;
+			userB.ratingBefore = userB.elorating;
 
-				personA.wins++;
-				personB.losses++;
+			if (winningTeam === "team-a") {
+				userA.wins++;
+				userB.losses++;
 
-				personA.gamehistory.push(1);
-				personB.gamehistory.push(0);
+				let expectedScoreA = elo.getExpected(userA.elorating, userB.elorating);
+				let expectedScoreB = elo.getExpected(userB.elorating, userA.elorating);
 
-				//* Elo stuff
-				var expectedScoreA = elo.getExpected(
-					personA.elorating,
-					personB.elorating
-				);
-				var expectedScoreB = elo.getExpected(
-					personB.elorating,
-					personA.elorating
-				);
+				userA.elorating = elo.updateRating(expectedScoreA, 1, userA.elorating);
+				userB.elorating = elo.updateRating(expectedScoreB, 0, userB.elorating);
 
-				personA.elorating = elo.updateRating(
-					expectedScoreA,
-					1,
-					personA.elorating
-				);
+				// Calculate winstreak based on game history
+				let winstreak = 0;
+				let lastWin = 0;
 
-				personB.elorating = elo.updateRating(
-					expectedScoreB,
-					0,
-					personB.elorating
-				);
-
-				// See if person A has a winstreak from their latest games from past game history, and if so, add the bonus
-				var winstreak = 0;
-				for (let i = personA.gamehistory.length - 1; i >= 0; i--) {
-					if (personA.gamehistory[i] === 1) {
+				for (let i = 0; i < userA.gamehistory.length; i++) {
+					if (userA.gamehistory[i] === 1) {
+						lastWin = i;
 						winstreak++;
 					} else {
-						break;
+						winstreak = 0;
 					}
 				}
 
 				if (winstreak === 3) {
-					personA.elorating += 5;
+					userA.elorating += 5;
 				} else if (winstreak === 4) {
-					personA.elorating += 6;
+					userA.elorating += 6;
 				} else if (winstreak === 5) {
-					personA.elorating += 7;
+					userA.elorating += 7;
 				} else if (winstreak >= 6) {
-					personA.elorating += 8;
+					userA.elorating += 8;
 				}
 
-				personA.ratingChange = personA.elorating - personAEloRatingBefore;
-				personB.ratingChange = personBEloRatingBefore - personB.elorating;
+				userA.gamehistory.push(1);
+				userB.gamehistory.push(0);
+			} else {
+				userB.wins++;
+				userA.losses++;
 
-				personB.ratingChange = -personA.ratingChange;
+				let expectedScoreA = elo.getExpected(userA.elorating, userB.elorating);
+				let expectedScoreB = elo.getExpected(userB.elorating, userA.elorating);
 
-				personA.save();
-				personB.save();
-			}
-		} else if (winningTeam === "team-b") {
-			for (let i = 0; i < teamAUsers.length; i++) {
-				var personA = teamAUsers[i];
-				var personB = teamBUsers[i];
+				userA.elorating = elo.updateRating(expectedScoreA, 0, userA.elorating);
+				userB.elorating = elo.updateRating(expectedScoreB, 1, userB.elorating);
 
-				const personAEloRatingBefore = personA.elorating;
-				const personBEloRatingBefore = personB.elorating;
+				// Calculate winstreak based on game history
+				let winstreak = 0;
+				let lastWin = 0;
 
-				personA.gamesPlayed = personA.gamesPlayed + 1;
-				personB.gamesPlayed = personB.gamesPlayed + 1;
-
-				personB.wins++;
-				personA.losses++;
-
-				personB.gamehistory.push(1);
-				personA.gamehistory.push(0);
-
-				//* Elo stuff
-				var expectedScoreA = elo.getExpected(
-					personA.elorating,
-					personB.elorating
-				);
-
-				var expectedScoreB = elo.getExpected(
-					personB.elorating,
-					personA.elorating
-				);
-
-				personA.elorating = elo.updateRating(
-					expectedScoreA,
-					0,
-					personA.elorating
-				);
-				personB.elorating = elo.updateRating(
-					expectedScoreB,
-					1,
-					personB.elorating
-				);
-
-				// See if person B has a winstreak from their latest games from past game history, and if so, add the bonus
-				var winstreak = 0;
-				for (let i = personB.gamehistory.length - 1; i >= 0; i--) {
-					if (personB.gamehistory[i] === 1) {
+				for (let i = 0; i < userB.gamehistory.length; i++) {
+					if (userB.gamehistory[i] === 1) {
+						lastWin = i;
 						winstreak++;
 					} else {
-						break;
+						winstreak = 0;
 					}
 				}
 
 				if (winstreak === 3) {
-					personB.elorating += 5;
+					userB.elorating += 5;
 				} else if (winstreak === 4) {
-					personB.elorating += 6;
+					userB.elorating += 6;
 				} else if (winstreak === 5) {
-					personB.elorating += 7;
+					userB.elorating += 7;
 				} else if (winstreak >= 6) {
-					personB.elorating += 8;
+					userB.elorating += 8;
 				}
 
-				personA.ratingChange = personAEloRatingBefore - personA.elorating;
-				personB.ratingChange = personB.elorating - personBEloRatingBefore;
-
-				personA.ratingChange = -personA.ratingChange;
-
-				personA.save();
-				personB.save();
+				userB.gamehistory.push(0);
+				userB.gamehistory.push(1);
 			}
+
+			await userA.save();
+			await userB.save();
 		}
-
-		selectedGame.scoreSubmitted = true;
-		selectedGame.save();
 
 		interaction.reply(
 			"The scores have successfully been submitted, and ELO etc has been affected accordingly.\nWell done and good luck for next time!"
 		);
 
+		// LBPos stuff
 		var users = await User.find({});
 		users.sort((a, b) => b.elorating - a.elorating);
 

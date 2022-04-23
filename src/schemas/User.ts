@@ -8,7 +8,7 @@ export interface IUser {
 	gamehistory: number[];
 	gamesPlayed: number;
 	lbpos: number;
-	ratingChange: number;
+	ratingBefore: number;
 	suspended: boolean;
 	suspendedUntil: number;
 	suspendedReason: string;
@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema<IUser>({
 	gamehistory: [Number],
 	gamesPlayed: Number,
 	lbpos: Number,
-	ratingChange: Number,
+	ratingBefore: Number,
 	suspended: Boolean,
 	suspendedUntil: Number,
 	suspendedReason: String,

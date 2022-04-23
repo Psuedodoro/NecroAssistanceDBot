@@ -23,13 +23,15 @@ export default new Command({
 			return;
 		}
 
-		if (userExists.ratingChange === 0) {
+		if (userExists.ratingBefore === 0) {
 			interaction.reply("Your elo has not changed.");
 			return;
 		}
 
 		interaction.reply(
-			"Your ELO rating has recently changed by " + userExists.ratingChange + "!"
+			`Your elo has changed by ${
+				userExists.elorating - userExists.ratingBefore
+			}`
 		);
 	},
 });

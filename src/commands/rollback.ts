@@ -41,81 +41,34 @@ export default new Command({
 
 		gameExists.scoreSubmitted = false;
 
-		const rawTeamA: string[] = gameExists.teamA.map((user) =>
-			user.replace(/[<>!@]/g, "")
+		// Combine 2 arrays
+		const allPlayers: string[] = [...gameExists.teamA, ...gameExists.teamB].map(
+			(user) => user.replace(/[<>!@]/g, "")
 		);
 
-		const rawTeamB: string[] = gameExists.teamB.map((user) =>
-			user.replace(/[<>!@]/g, "")
-		);
-
-		const teamAusers = await User.find({
-			discordID: { $in: rawTeamA },
+		const usersFromDB = await User.find({
+			discordID: { $in: allPlayers },
 		});
 
-		const teamBusers = await User.find({
-			discordID: { $in: rawTeamB },
-		});
+		//* Actually do the rollback stuff
+		usersFromDB.forEach((user) => {
+			user.gamesPlayed--;
+			user.elorating = user.ratingBefore;
 
-		teamAusers.forEach((user) => {
+			if (user.gamesPlayed < 0) user.gamesPlayed = 0;
+
 			if (user.gamehistory[user.gamehistory.length - 1] === 0) {
+				user.gamehistory.pop();
 				user.losses--;
-				user.gamesPlayed--;
-
-				var usersRatingChange: number = user.ratingChange;
-
-				if (usersRatingChange < 0) {
-					usersRatingChange = user.elorating =
-						user.elorating + -usersRatingChange;
-				} else if (usersRatingChange >= 0) {
-					user.elorating = user.elorating - usersRatingChange;
-				}
-			} else if (user.gamehistory[user.gamehistory.length - 1] === 1) {
+			} else {
+				user.gamehistory.pop();
 				user.wins--;
-				user.gamesPlayed--;
-
-				var usersRatingChange: number = user.ratingChange;
-
-				if (usersRatingChange < 0) {
-					usersRatingChange = user.elorating =
-						user.elorating + -usersRatingChange;
-				} else if (usersRatingChange >= 0) {
-					user.elorating = user.elorating - usersRatingChange;
-				}
 			}
 
-			user.gamehistory.pop();
-			user.save();
-		});
-
-		teamBusers.forEach((user) => {
-			if (user.gamehistory[user.gamehistory.length - 1] === 0) {
-				user.losses--;
-				user.gamesPlayed--;
-
-				var usersRatingChange: number = user.ratingChange;
-
-				if (usersRatingChange < 0) {
-					usersRatingChange = user.elorating =
-						user.elorating + -usersRatingChange;
-				} else if (usersRatingChange >= 0) {
-					user.elorating = user.elorating - usersRatingChange;
-				}
-			} else if (user.gamehistory[user.gamehistory.length - 1] === 1) {
-				user.wins--;
-				user.gamesPlayed--;
-
-				var usersRatingChange: number = user.ratingChange;
-
-				if (usersRatingChange < 0) {
-					usersRatingChange = user.elorating =
-						user.elorating + -usersRatingChange;
-				} else if (usersRatingChange >= 0) {
-					user.elorating = user.elorating - usersRatingChange;
-				}
+			if (user.gamehistory.length === 0) {
+				user.lbpos = 0;
 			}
 
-			user.gamehistory.pop();
 			user.save();
 		});
 
@@ -127,16 +80,14 @@ export default new Command({
 
 		for (let i = 0; i < users.length; i++) {
 			const user = users[i];
-
 			user.lbpos = i + 1;
-
 			user.save();
 		}
 
-		gameExists.save();
+		gameExists.delete();
 
 		interaction.reply(
-			`Game ${gameref} on ${gameExists.gameMap} has been rolled back and stats have been affected accordingly.`
+			`Game ${gameref} on ${gameExists.gameMap} has been rolled back and stats have been affected accordingly.\nThe game has also been deleted from the system.`
 		);
 	},
 });
