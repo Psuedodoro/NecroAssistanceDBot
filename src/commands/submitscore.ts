@@ -154,8 +154,10 @@ export default new Command({
 					personA.elorating += 8;
 				}
 
-				personA.ratingChange = personAEloRatingBefore - personA.elorating;
+				personA.ratingChange = personA.elorating - personAEloRatingBefore;
 				personB.ratingChange = personBEloRatingBefore - personB.elorating;
+
+				personB.ratingChange = -personA.ratingChange;
 
 				personA.save();
 				personB.save();
@@ -219,8 +221,10 @@ export default new Command({
 					personB.elorating += 8;
 				}
 
-				personA.ratingChange = personA.elorating - personAEloRatingBefore;
+				personA.ratingChange = personAEloRatingBefore - personA.elorating;
 				personB.ratingChange = personB.elorating - personBEloRatingBefore;
+
+				personA.ratingChange = -personA.ratingChange;
 
 				personA.save();
 				personB.save();

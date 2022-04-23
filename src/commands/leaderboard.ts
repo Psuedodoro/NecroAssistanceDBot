@@ -10,7 +10,6 @@ export default new Command({
 		var users = await User.find({});
 		users.sort((a, b) => b.elorating - a.elorating);
 
-		// Only show users that have actually played a ranked game.
 		users = users.filter((user) => user.gamehistory.length > 0);
 
 		var playernames = [];
