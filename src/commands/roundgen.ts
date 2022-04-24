@@ -29,6 +29,7 @@ export default new Command({
 			name: "is-haven",
 			description: "Is this a game on the haven map with 3 sites?",
 			type: "BOOLEAN",
+			required: true,
 		},
 	],
 
