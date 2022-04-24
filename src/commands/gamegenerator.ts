@@ -1,6 +1,5 @@
-import mapsAndInfo from "../mapsandinfo.json";
 import { Command } from "../structures/Command";
-import stdCommandVerification from "../security/commandRunVerification";
+import makeTeams from "../functions/teamsGenerator";
 
 export default new Command({
 	name: "generate-game",
@@ -24,34 +23,8 @@ export default new Command({
 			return;
 		}
 
-		var teamA = [];
-		var teamB = [];
-
-		results.sort(() => Math.random() - 0.5);
-
-		for (var i = 0; i < results.length; i++) {
-			if (i % 2 == 0) {
-				teamA.push(results[i]);
-			} else {
-				teamB.push(results[i]);
-			}
-		}
-
-		const randBool = Math.random() >= 0.5;
-
-		const isEvenGame = results.length % 2 == 0;
-
-		if (!isEvenGame) {
-			if (randBool) {
-				teamB.push(teamA.pop());
-			}
-		}
-
-		const selectedMap =
-			mapsAndInfo[Math.floor(Math.random() * mapsAndInfo.length)];
-
-		const selectedmapname = selectedMap.name;
-		const selectedmapimage = selectedMap.image;
+		const { teamA, teamB, selectedmapimage, selectedmapname } =
+			makeTeams(results);
 
 		interaction.reply({
 			embeds: [

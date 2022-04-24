@@ -43,7 +43,6 @@ export default new Command({
 			7 winstreak: 8 
 		*/
 
-		// TODO: Add a conformation prompt to this like the ranked game creation thing.
 		const gameID = interaction.options.getString("game-id");
 		const winningTeam = interaction.options.getString("winning-team");
 
@@ -116,7 +115,7 @@ export default new Command({
 				userA.elorating = elo.updateRating(expectedScoreA, 1, userA.elorating);
 				userB.elorating = elo.updateRating(expectedScoreB, 0, userB.elorating);
 
-				// Calculate winstreak based on game history
+				//* Winstreak calculations
 				let winstreak = 0;
 				let lastWin = 0;
 
@@ -151,7 +150,7 @@ export default new Command({
 				userA.elorating = elo.updateRating(expectedScoreA, 0, userA.elorating);
 				userB.elorating = elo.updateRating(expectedScoreB, 1, userB.elorating);
 
-				// Calculate winstreak based on game history
+				//* Winstreak calculations
 				let winstreak = 0;
 				let lastWin = 0;
 
@@ -174,7 +173,7 @@ export default new Command({
 					userB.elorating += 8;
 				}
 
-				userB.gamehistory.push(0);
+				userA.gamehistory.push(0);
 				userB.gamehistory.push(1);
 			}
 

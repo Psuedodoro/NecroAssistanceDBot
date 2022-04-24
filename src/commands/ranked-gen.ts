@@ -1,9 +1,8 @@
-import mapsAndInfo from "../mapsandinfo.json";
-import stdCommandVerification from "../security/commandRunVerification";
 import RankedGame from "../schemas/RankedGame";
 import User from "../schemas/User";
 
 import { Command } from "../structures/Command";
+import makeTeams from "../functions/teamsGenerator";
 
 export default new Command({
 	name: "generate-ranked",
@@ -23,14 +22,6 @@ export default new Command({
 		const interactionUserFromDB = await User.findOne({
 			discordID: interaction.user.id,
 		});
-
-		//! TODO: FIX THIS SHIT IT AINT WORKING
-		/* if (!stdCommandVerification(interaction, interactionUserFromDB)) {
-			interaction.reply(
-				"You are suspended from using all commands to do with the ranked game system."
-			);
-			return;
-		} */
 
 		const players = interaction.options
 			.getString("players")
@@ -52,50 +43,15 @@ export default new Command({
 			player.replace(/<@!?(\d+)>/, "$1")
 		);
 
-		var teamA = [];
-		var teamB = [];
-
 		//* --- THIS MAKES THE TEAMS - MOST IMPORTANT PART! --- !//
 		const makeTeamsDoFinal = async (playersArg) => {
-			playersArg.sort(() => Math.random() - 0.5);
-
-			for (var i = 0; i < playersArg.length; i++) {
-				if (i % 2 == 0) {
-					teamA.push(playersArg[i]);
-				} else {
-					teamB.push(playersArg[i]);
-				}
-			}
-
-			const randBool = Math.random() >= 0.5;
-
-			const isEvenGame = playersArg.length % 2 == 0;
-
-			if (!isEvenGame) {
-				if (randBool) {
-					teamB.push(teamA.pop());
-				}
-			}
-
-			const selectedMap =
-				mapsAndInfo[Math.floor(Math.random() * mapsAndInfo.length)];
-
-			const selectedmapname = selectedMap.name;
-			const selectedmapimage = selectedMap.image;
-
-			//* Game ID Stuff
-			const gameRef = Math.random().toString(36).substring(2, 7);
-
-			const gameInfo = {
-				gameRef: gameRef,
-				teamA: teamA,
-				teamB: teamB,
-				scoreSubmitted: false,
-				gameMap: selectedmapname,
-			};
+			const gameInfo = makeTeams(playersArg);
 
 			const game = new RankedGame(gameInfo);
 			await game.save();
+
+			const { selectedmapimage, selectedmapname, teamA, teamB, gameRef } =
+				gameInfo;
 
 			interaction.channel.send({
 				embeds: [
@@ -128,6 +84,8 @@ export default new Command({
 					},
 				],
 			});
+
+			return;
 		};
 		//*! --- End of team generation etc stuff --- !//
 

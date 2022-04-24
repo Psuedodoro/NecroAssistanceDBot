@@ -25,9 +25,7 @@ export default new Command({
 
 		for (let i = 0; i < users.length; i++) {
 			const user = users[i];
-
 			user.lbpos = i + 1;
-
 			user.save();
 		}
 
