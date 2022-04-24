@@ -10,7 +10,9 @@ import glob from "glob";
 import { promisify } from "util";
 import { RegisterCommandsOptions } from "../typings/client";
 import { Event } from "./Event";
-import { token, guildID } from "../../config.json";
+
+import dotenv from "dotenv";
+dotenv.config();
 
 const globPromise = promisify(glob);
 
@@ -23,7 +25,7 @@ export class ExtendedClient extends Client {
 
 	start() {
 		this.registerModules();
-		this.login(token);
+		this.login(process.env.TOKEN);
 	}
 
 	async importFile(filePath: string) {
@@ -80,7 +82,7 @@ export class ExtendedClient extends Client {
 		this.on("ready", () => {
 			this.registerCommands({
 				commands: slashCommands,
-				guildId: guildID,
+				guildId: process.env.guildID,
 			});
 		});
 
