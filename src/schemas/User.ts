@@ -1,5 +1,9 @@
 import mongoose from "mongoose";
 
+export interface IAgentReservation {
+	main: string;
+	backup: string;
+}
 export interface IUser {
 	discordID: string;
 	elorating: number;
@@ -12,6 +16,7 @@ export interface IUser {
 	suspended: boolean;
 	suspendedUntil: number;
 	suspendedReason: string;
+	agents: IAgentReservation;
 }
 
 const userSchema = new mongoose.Schema<IUser>({
@@ -26,6 +31,10 @@ const userSchema = new mongoose.Schema<IUser>({
 	suspended: Boolean,
 	suspendedUntil: Number,
 	suspendedReason: String,
+	agents: {
+		main: String,
+		backup: String,
+	},
 });
 
 export default mongoose.model<IUser>("User", userSchema);
