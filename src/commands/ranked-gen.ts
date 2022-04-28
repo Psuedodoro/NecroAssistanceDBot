@@ -101,13 +101,14 @@ export default new Command({
 			);
 
 			if (!generalVC.isVoice()) return;
+			if (!generalVC.members || generalVC.members === null) return;
 
 			const privateVC = interaction.guild.channels.cache.find(
-				(channel) => channel.name === "Private 1"
+				(channel) => channel.id === "962385681148157992"
 			);
 
 			const privateVC2 = interaction.guild.channels.cache.find(
-				(channel) => channel.name === "Private 2"
+				(channel) => channel.id === "962385706158788618"
 			);
 
 			if (!privateVC.isVoice()) return;
@@ -125,12 +126,12 @@ export default new Command({
 				);
 			}
 
-			const teamAInGeneral = generalVC.members.filter(
-				(user) => !teamAIDs.includes(user.id)
+			const teamAInGeneral = generalVC.members.filter((user) =>
+				teamAIDs.includes(user.id)
 			);
 
-			const teamBInGeneral = generalVC.members.filter(
-				(user) => !teamBIDs.includes(user.id)
+			const teamBInGeneral = generalVC.members.filter((user) =>
+				teamBIDs.includes(user.id)
 			);
 
 			teamAInGeneral.forEach(async (user) => {
