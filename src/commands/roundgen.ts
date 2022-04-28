@@ -5,7 +5,7 @@ const plantOptions = [
 	"Planting Allowed :white_check_mark:",
 	"Planting At 30 Seconds Remaining :hourglass:",
 	"Planting After Death :skull_crossbones:",
-	"Planting is required :bomb:!",
+	"Planting is Required :bomb:",
 ];
 
 const havenSites = [

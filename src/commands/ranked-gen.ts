@@ -3,6 +3,7 @@ import User from "../schemas/User";
 
 import { Command } from "../structures/Command";
 import makeTeams from "../functions/teamsGenerator";
+import { VoiceChannel } from "discord.js";
 
 export default new Command({
 	name: "generate-ranked",
@@ -57,7 +58,7 @@ export default new Command({
 				player.replace(/<@!?(\d+)>/, "$1")
 			);
 
-			const teamBIDs = teamA.map((player) =>
+			const teamBIDs = teamB.map((player) =>
 				player.replace(/<@!?(\d+)>/, "$1")
 			);
 
@@ -93,55 +94,46 @@ export default new Command({
 				],
 			});
 
-			//TODO: Test this VC Moving stuff
 			await new Promise((resolve) => setTimeout(resolve, 5000));
 
 			const generalVC = await interaction.guild.channels.cache.find(
 				(channel) => channel.id === "962385657794277466"
 			);
 
-			if (!generalVC.isVoice()) return;
-			if (!generalVC.members || generalVC.members === null) return;
-
-			const privateVC = interaction.guild.channels.cache.find(
+			const teamAVC = (await interaction.guild.channels.cache.find(
 				(channel) => channel.id === "962385681148157992"
-			);
+			)) as VoiceChannel;
 
-			const privateVC2 = interaction.guild.channels.cache.find(
+			const teamBVC = (await interaction.guild.channels.cache.find(
 				(channel) => channel.id === "962385706158788618"
-			);
+			)) as VoiceChannel;
 
-			if (!privateVC.isVoice()) return;
-			if (!privateVC2.isVoice()) return;
-
-			if (!privateVC) {
-				interaction.reply(
-					"I couldn't find the private channel, please make sure it exists and try again."
-				);
+			if (!generalVC.isVoice()) {
+				console.log("GENERAL VC IS INVALID!");
+				return;
 			}
 
-			if (!privateVC2) {
-				interaction.reply(
-					"I couldn't find the private 2 vc channel, please make sure it exists and try again."
-				);
-			}
+			const generalVCMembers = generalVC.members;
 
-			const teamAInGeneral = generalVC.members.filter((user) =>
-				teamAIDs.includes(user.id)
+			const teamAMembers = generalVCMembers.filter((member) =>
+				teamAIDs.includes(member.id)
 			);
 
-			const teamBInGeneral = generalVC.members.filter((user) =>
-				teamBIDs.includes(user.id)
+			const teamBMembers = generalVCMembers.filter((member) =>
+				teamBIDs.includes(member.id)
 			);
 
-			teamAInGeneral.forEach(async (user) => {
-				await user.voice.setChannel(privateVC);
+			teamAMembers.forEach(async (member) => {
+				await member.voice.setChannel(teamAVC);
 			});
 
-			teamBInGeneral.forEach(async (user) => {
-				await user.voice.setChannel(privateVC2);
+			teamBMembers.forEach(async (member) => {
+				await member.voice.setChannel(teamBVC);
 			});
 
+			interaction.followUp(
+				"Moved users into correct VCs.\nGood luck once more!"
+			);
 			return;
 		};
 		//*! --- End of team generation etc stuff --- !//

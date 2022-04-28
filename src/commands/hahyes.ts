@@ -1,3 +1,4 @@
+import { VoiceChannel } from "discord.js";
 import { Command } from "../structures/Command";
 
 export default new Command({
@@ -13,6 +14,6 @@ export default new Command({
 	],
 
 	run: async ({ interaction }) => {
-		await interaction.reply("Hello");
+		interaction.reply("Hiya!");
 	},
 });
