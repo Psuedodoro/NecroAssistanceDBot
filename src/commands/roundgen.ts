@@ -5,6 +5,7 @@ const plantOptions = [
 	"Planting Allowed :white_check_mark:",
 	"Planting At 30 Seconds Remaining :hourglass:",
 	"Planting After Death :skull_crossbones:",
+	"Planting is required!",
 ];
 
 const havenSites = [
@@ -13,6 +14,7 @@ const havenSites = [
 	"C Site :regional_indicator_c:",
 	"Mid :dart:",
 ];
+
 const standardSites = ["A Site :regional_indicator_a:", "B Site :b:"];
 
 const abilityChoice = [

@@ -14,18 +14,6 @@ export default new Command({
 			required: true,
 		},
 	],
-	commandPermissions: [
-		{
-			id: "930744788859359282",
-			type: "USER",
-			permission: true,
-		},
-		{
-			id: "961380756444307496",
-			type: "ROLE",
-			permission: false,
-		},
-	],
 
 	run: async ({ interaction }) => {
 		const gameref = interaction.options.getString("game-id");

@@ -36,28 +36,7 @@ export class ExtendedClient extends Client {
 		if (guildId) {
 			console.log(`📜 Registering commands to ${guildId}`);
 			const guild = await this.guilds.cache.get(guildId);
-
-			const guildRegisteredCommands = await guild?.commands.set(commands);
-
-			//* Updates all permissions for all commands with a commandPermissions option array
-			const fullPermissions = guildRegisteredCommands
-				.map((command) => {
-					const storedCommand = this.commands.find(
-						(cmd) => cmd.name === command.name
-					);
-
-					return {
-						id: command.id,
-						permissions: storedCommand.commandPermissions,
-					};
-				})
-				.filter((command) => command.permissions);
-
-			guild.commands.permissions.set({
-				fullPermissions: fullPermissions,
-			});
-
-			console.log("🚨 Command permissions have been updated.");
+			await guild?.commands.set(commands);
 		} else {
 			const applicationRegisteredCommands =
 				await this.application?.commands.set(commands);

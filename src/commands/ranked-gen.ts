@@ -85,6 +85,33 @@ export default new Command({
 				],
 			});
 
+			//TODO: Test this VC Moving stuff
+			await new Promise((resolve) => setTimeout(resolve, 5000));
+
+			const generalVC = await interaction.guild.channels.cache.find(
+				(channel) => channel.id === "962385657794277466"
+			);
+
+			if (!generalVC.isVoice()) return;
+
+			const privateVC = interaction.guild.channels.cache.find(
+				(channel) => channel.name === "Private 1"
+			);
+
+			if (!privateVC.isVoice()) return;
+
+			if (!privateVC) {
+				interaction.reply(
+					"I couldn't find the private channel, please make sure it exists and try again."
+				);
+			}
+
+			const usersInGeneral = generalVC.members;
+
+			usersInGeneral.forEach(async (user) => {
+				await user.voice.setChannel(privateVC);
+			});
+
 			return;
 		};
 		//*! --- End of team generation etc stuff --- !//

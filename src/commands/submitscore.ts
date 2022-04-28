@@ -192,7 +192,6 @@ export default new Command({
 		// Only show users that have actually played a ranked game.
 		users = users.filter((user) => user.gamehistory.length > 0);
 
-		//! TODO: BUG FIX THIS AS IT IS FOR SOME REASON NOW SHOWING ON THE STATS OF THE PERSON!
 		for (let i = 0; i < users.length; i++) {
 			users[i].lbpos = i + 1;
 			users[i].save();
