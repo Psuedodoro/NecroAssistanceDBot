@@ -53,6 +53,14 @@ export default new Command({
 			const { selectedmapimage, selectedmapname, teamA, teamB, gameRef } =
 				gameInfo;
 
+			const teamAIDs = teamA.map((player) =>
+				player.replace(/<@!?(\d+)>/, "$1")
+			);
+
+			const teamBIDs = teamA.map((player) =>
+				player.replace(/<@!?(\d+)>/, "$1")
+			);
+
 			interaction.channel.send({
 				embeds: [
 					{
@@ -98,7 +106,12 @@ export default new Command({
 				(channel) => channel.name === "Private 1"
 			);
 
+			const privateVC2 = interaction.guild.channels.cache.find(
+				(channel) => channel.name === "Private 2"
+			);
+
 			if (!privateVC.isVoice()) return;
+			if (!privateVC2.isVoice()) return;
 
 			if (!privateVC) {
 				interaction.reply(
@@ -106,10 +119,26 @@ export default new Command({
 				);
 			}
 
-			const usersInGeneral = generalVC.members;
+			if (!privateVC2) {
+				interaction.reply(
+					"I couldn't find the private 2 vc channel, please make sure it exists and try again."
+				);
+			}
 
-			usersInGeneral.forEach(async (user) => {
+			const teamAInGeneral = generalVC.members.filter(
+				(user) => !teamAIDs.includes(user.id)
+			);
+
+			const teamBInGeneral = generalVC.members.filter(
+				(user) => !teamBIDs.includes(user.id)
+			);
+
+			teamAInGeneral.forEach(async (user) => {
 				await user.voice.setChannel(privateVC);
+			});
+
+			teamBInGeneral.forEach(async (user) => {
+				await user.voice.setChannel(privateVC2);
 			});
 
 			return;
