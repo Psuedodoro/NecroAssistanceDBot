@@ -23,7 +23,7 @@ export default new Command({
 			return;
 		}
 
-		const { teamA, teamB, selectedmapimage, selectedmapname } = makeTeams(
+		const { teamA, teamB, selectedmapimage, gameMap } = makeTeams(
 			results,
 			false
 		);
@@ -32,7 +32,7 @@ export default new Command({
 			embeds: [
 				{
 					type: "rich",
-					title: `A Game Has Been Generated On ${selectedmapname}!`,
+					title: `A Game Has Been Generated On ${gameMap}!`,
 					description: `Good luck, and may the best team win!`,
 					color: 0x09ff00,
 					fields: [

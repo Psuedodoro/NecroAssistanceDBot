@@ -55,17 +55,16 @@ export default new Command({
 		const makeTeamsDoFinal = async (playersArg) => {
 			const gameInfo = makeTeams(playersArg, doBanAgents);
 
-			const game = new RankedGame(gameInfo);
+			const game = new RankedGame({
+				gameMap: gameInfo.gameMap,
+				gameRef: gameInfo.gameRef,
+				teamA: gameInfo.teamA,
+				teamB: gameInfo.teamB,
+			});
 			await game.save();
 
-			const {
-				selectedmapimage,
-				selectedmapname,
-				teamA,
-				teamB,
-				gameRef,
-				bannedAgents,
-			} = gameInfo;
+			const { selectedmapimage, gameMap, teamA, teamB, gameRef, bannedAgents } =
+				gameInfo;
 
 			const teamAIDs = teamA.map((player) =>
 				player.replace(/<@!?(\d+)>/, "$1")
@@ -83,7 +82,7 @@ export default new Command({
 			interaction.channel.send({
 				embeds: [
 					{
-						title: `A **Ranked** Game Has Been Generated On ${selectedmapname}!`,
+						title: `A **Ranked** Game Has Been Generated On ${gameMap}!`,
 						description: `**This game __will__ affect ELO rating scores.**\nGood luck, and may the best team win!`,
 						color: 0x09ff00,
 						fields: [

@@ -58,7 +58,7 @@ export default function makeTeams(players: string[], doBanAgents: boolean) {
 	const selectedmapimage = selectedMap.image;
 
 	return {
-		selectedmapname,
+		gameMap: selectedmapname,
 		selectedmapimage,
 		teamA,
 		teamB,
