@@ -227,8 +227,14 @@ export default new Command({
 			console.log(usersReacted);
 
 			if (usersReacted.length !== playerIDs.length) {
+				const notReactedUsers = playerIDs
+					.filter((id) => !usersReacted.includes(id))
+					.map((id) => `<@!${id}>`);
+
 				interaction.channel.send(
-					"Not all of the players have confirmed to join the game. Aborting!"
+					`The following players haven't accepted the game:\n${notReactedUsers.join(
+						", "
+					)}`
 				);
 				return;
 			}
