@@ -3,7 +3,7 @@ import { client } from "..";
 import { Command } from "../structures/Command";
 import User from "../schemas/User";
 
-import allAgents from "../valorantAgents.json";
+import allAgents from "../data/valorantAgents.json";
 
 export default new Command({
 	name: "change-agents",

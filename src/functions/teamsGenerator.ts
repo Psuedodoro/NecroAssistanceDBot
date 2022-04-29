@@ -1,8 +1,32 @@
-import mapsAndInfo from "../mapsandinfo.json";
+import mapsAndInfo from "../data/mapsandinfo.json";
 
-export default function makeTeams(players: string[]) {
+import allAgentClasses from "../data/agentClassesToBan.json";
+
+export default function makeTeams(players: string[], doBanAgents: boolean) {
 	// Optional gameID (can be used for ranked games etc)
 	const gameRef = Math.random().toString(36).substring(2, 7);
+
+	const allClassList = Object.keys(allAgentClasses);
+
+	var bannedAgents: string[] = [];
+	if (doBanAgents) {
+		for (let i = 0; i < allClassList.length; i++) {
+			const agentsInClass: string[] = allAgentClasses[allClassList[i]];
+
+			bannedAgents.push(
+				agentsInClass[Math.floor(Math.random() * agentsInClass.length)]
+			);
+		}
+
+		const randomSelectedClass: string =
+			allClassList[Math.floor(Math.random() * allClassList.length)];
+		const randomSelectedAgent: string =
+			allAgentClasses[randomSelectedClass][
+				Math.floor(Math.random() * allAgentClasses[randomSelectedClass].length)
+			];
+
+		bannedAgents.push(randomSelectedAgent);
+	}
 
 	var teamA = [];
 	var teamB = [];
@@ -39,5 +63,6 @@ export default function makeTeams(players: string[]) {
 		teamA,
 		teamB,
 		gameRef,
+		bannedAgents,
 	};
 }

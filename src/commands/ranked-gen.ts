@@ -15,10 +15,17 @@ export default new Command({
 			type: "STRING",
 			required: true,
 		},
+		{
+			name: "do-agent-banning",
+			description: "Do you want to be able to ban agents?",
+			type: "BOOLEAN",
+			required: true,
+		},
 	],
 
 	run: async ({ interaction }) => {
 		if (!interaction.inCachedGuild()) return;
+		const doBanAgents = interaction.options.getBoolean("do-agent-banning");
 
 		const interactionUserFromDB = await User.findOne({
 			discordID: interaction.user.id,
@@ -46,13 +53,19 @@ export default new Command({
 
 		//* --- THIS MAKES THE TEAMS - MOST IMPORTANT PART! --- !//
 		const makeTeamsDoFinal = async (playersArg) => {
-			const gameInfo = makeTeams(playersArg);
+			const gameInfo = makeTeams(playersArg, doBanAgents);
 
 			const game = new RankedGame(gameInfo);
 			await game.save();
 
-			const { selectedmapimage, selectedmapname, teamA, teamB, gameRef } =
-				gameInfo;
+			const {
+				selectedmapimage,
+				selectedmapname,
+				teamA,
+				teamB,
+				gameRef,
+				bannedAgents,
+			} = gameInfo;
 
 			const teamAIDs = teamA.map((player) =>
 				player.replace(/<@!?(\d+)>/, "$1")
@@ -61,6 +74,11 @@ export default new Command({
 			const teamBIDs = teamB.map((player) =>
 				player.replace(/<@!?(\d+)>/, "$1")
 			);
+
+			// make it so that banned agents variable is equal to "Nothing" if there are no banned agents
+			const bannedAgentsString = bannedAgents.length
+				? bannedAgents.join(", ")
+				: "No banned agents!";
 
 			interaction.channel.send({
 				embeds: [
@@ -82,6 +100,11 @@ export default new Command({
 							{
 								name: `Game ID (To submit scores)`,
 								value: `${gameRef}`,
+								inline: false,
+							},
+							{
+								name: `Banned Agents:`,
+								value: `${bannedAgentsString}`,
 								inline: false,
 							},
 						],
@@ -131,9 +154,6 @@ export default new Command({
 				await member.voice.setChannel(teamBVC);
 			});
 
-			interaction.followUp(
-				"Moved users into correct VCs.\nGood luck once more!"
-			);
 			return;
 		};
 		//*! --- End of team generation etc stuff --- !//

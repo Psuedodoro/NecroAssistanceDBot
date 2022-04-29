@@ -1,5 +1,5 @@
 import RankedGame from "../schemas/RankedGame";
-import MapsAndInfo from "../mapsandinfo.json";
+import MapsAndInfo from "../data/mapsandinfo.json";
 
 import { Command } from "../structures/Command";
 

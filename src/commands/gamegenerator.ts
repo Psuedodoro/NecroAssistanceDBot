@@ -23,8 +23,10 @@ export default new Command({
 			return;
 		}
 
-		const { teamA, teamB, selectedmapimage, selectedmapname } =
-			makeTeams(results);
+		const { teamA, teamB, selectedmapimage, selectedmapname } = makeTeams(
+			results,
+			false
+		);
 
 		interaction.reply({
 			embeds: [

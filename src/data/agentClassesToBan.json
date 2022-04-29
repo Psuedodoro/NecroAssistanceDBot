@@ -1,0 +1,29 @@
+{
+	"initiator": [
+		"Breach",
+		"KAY/O",
+		"Skye",
+		"Sova",
+		"Fade"
+	],
+	"controller": [
+		"Astra",
+		"Brimstone",
+		"Omen",
+		"Viper"
+	],
+	"duelist": [
+		"Jett", 
+		"Pheonix", 
+		"Neon", 
+		"Raze", 
+		"Reyna", 
+		"Yoru"
+	],
+	"sentinel": [
+		"Chamber",
+		"Cypher",
+		"Killjoy",
+		"Sage"
+	]
+}

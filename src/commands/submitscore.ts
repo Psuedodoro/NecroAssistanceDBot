@@ -46,8 +46,6 @@ export default new Command({
 		const gameID = interaction.options.getString("game-id");
 		const winningTeam = interaction.options.getString("winning-team");
 
-		console.log(winningTeam, gameID); // team-a ug2ro
-
 		if (gameID.length !== 5) {
 			interaction.reply("The game ID must be 5 characters long!");
 			return;

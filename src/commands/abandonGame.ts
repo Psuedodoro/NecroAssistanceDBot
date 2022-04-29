@@ -22,8 +22,6 @@ export default new Command({
 
 		const gameExists = await RankedGame.findOne({ gameRef: gameRefOption });
 
-		console.log(gameExists);
-
 		if (!gameExists) {
 			interaction.reply("That game doesn't exist! Please try again.");
 			return;
