@@ -1,6 +1,6 @@
-import { Command } from "../structures/Command";
+import { Command } from "../../structures/Command";
 
-import RankedGame from "../schemas/RankedGame";
+import RankedGame from "../../schemas/RankedGame";
 
 export default new Command({
 	name: "abandon-game",

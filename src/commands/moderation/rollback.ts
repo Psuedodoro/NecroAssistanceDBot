@@ -1,8 +1,8 @@
-import { Command } from "../structures/Command";
+import { Command } from "../../structures/Command";
 
-import RankedGame from "../schemas/RankedGame";
-import User from "../schemas/User";
-import eloToRank from "../functions/eloToRank";
+import RankedGame from "../../schemas/RankedGame";
+import User from "../../schemas/User";
+import eloToRank from "../../functions/eloToRank";
 
 export default new Command({
 	name: "rollback-game",

@@ -1,8 +1,8 @@
-import RankedGame from "../schemas/RankedGame";
-import User from "../schemas/User";
+import RankedGame from "../../schemas/RankedGame";
+import User from "../../schemas/User";
 
-import { Command } from "../structures/Command";
-import makeTeams from "../functions/teamsGenerator";
+import { Command } from "../../structures/Command";
+import makeTeams from "../../functions/teamsGenerator";
 import { VoiceChannel } from "discord.js";
 
 export default new Command({

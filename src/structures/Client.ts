@@ -48,7 +48,7 @@ export class ExtendedClient extends Client {
 		// Command Handler
 		const slashCommands: ApplicationCommandDataResolvable[] = [];
 		const commandFiles = await globPromise(
-			`${__dirname}/../commands/*{.ts,.js}`
+			`${__dirname}/../commands/*/*{.ts,.js}`
 		);
 		commandFiles.forEach(async (filePath) => {
 			const command: CommandType = await this.importFile(filePath);

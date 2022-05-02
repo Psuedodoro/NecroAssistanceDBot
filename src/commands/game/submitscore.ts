@@ -1,11 +1,11 @@
-import { Command } from "../structures/Command";
+import { Command } from "../../structures/Command";
 
 import EloRank from "elo-rank";
 const elo = new EloRank(25);
 
-import RankedGame from "../schemas/RankedGame";
-import User from "../schemas/User";
-import eloToRank from "../functions/eloToRank";
+import RankedGame from "../../schemas/RankedGame";
+import User from "../../schemas/User";
+import eloToRank from "../../functions/eloToRank";
 
 export default new Command({
 	name: "submit-score",

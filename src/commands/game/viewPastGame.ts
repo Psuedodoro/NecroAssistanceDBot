@@ -1,7 +1,7 @@
-import RankedGame from "../schemas/RankedGame";
-import MapsAndInfo from "../data/mapsandinfo.json";
+import RankedGame from "../../schemas/RankedGame";
+import MapsAndInfo from "../../data/mapsandinfo.json";
 
-import { Command } from "../structures/Command";
+import { Command } from "../../structures/Command";
 
 export default new Command({
 	name: "view-past-game",

@@ -1,6 +1,6 @@
-import { Command } from "../structures/Command";
+import { Command } from "../../structures/Command";
 
-import User from "../schemas/User";
+import User from "../../schemas/User";
 
 export default new Command({
 	name: "unsuspend-user",

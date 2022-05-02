@@ -1,6 +1,6 @@
-import User from "../schemas/User";
+import User from "../../schemas/User";
 
-import { Command } from "../structures/Command";
+import { Command } from "../../structures/Command";
 
 export default new Command({
 	name: "elo-change",

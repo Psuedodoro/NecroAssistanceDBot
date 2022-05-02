@@ -1,5 +1,5 @@
-import { Command } from "../structures/Command";
-import makeTeams from "../functions/teamsGenerator";
+import { Command } from "../../structures/Command";
+import makeTeams from "../../functions/teamsGenerator";
 
 export default new Command({
 	name: "generate-game",

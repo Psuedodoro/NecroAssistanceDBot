@@ -1,6 +1,6 @@
-import { Command } from "../structures/Command";
-import User from "../schemas/User";
-import eloToRank from "../functions/eloToRank";
+import { Command } from "../../structures/Command";
+import User from "../../schemas/User";
+import eloToRank from "../../functions/eloToRank";
 
 export default new Command({
 	name: "debug-lb",
