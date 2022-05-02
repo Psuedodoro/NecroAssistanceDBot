@@ -75,7 +75,7 @@ export default new Command({
 
 			if (isUserInAllUsers) {
 				mainEmbed.addField(
-					`${member.displayName}`,
+					`${member.user.username}`,
 					`Main: ${isUserInAllUsers.agents.main}\nBackup: ${isUserInAllUsers.agents.backup}`
 				);
 			}
