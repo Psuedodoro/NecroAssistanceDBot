@@ -1,5 +1,5 @@
 import { MessageEmbed, TextChannel } from "discord.js";
-import { client } from "../..";
+import { client } from "../../index";
 import { Command } from "../../structures/Command";
 import User from "../../schemas/User";
 
@@ -66,15 +66,19 @@ export default new Command({
 				`This is the current agent reserve roster for Team Necro!`
 			);
 
-		allUsers.forEach((DBuser) => {
-			if (DBuser.agents)
+		const allServerMembers = await interaction.guild.members.fetch();
+
+		allServerMembers.map((member) => {
+			const isUserInAllUsers = allUsers.find(
+				(user) => user.discordID === member.id
+			);
+
+			if (isUserInAllUsers) {
 				mainEmbed.addField(
-					`${
-						client.users.cache.find((user) => user.id === DBuser.discordID)
-							.username
-					}`,
-					`Main: ${DBuser.agents.main}\nBackup: ${DBuser.agents.backup}`
+					`${member.displayName}`,
+					`Main: ${isUserInAllUsers.agents.main}\nBackup: ${isUserInAllUsers.agents.backup}`
 				);
+			}
 		});
 
 		if (message) {
@@ -85,7 +89,7 @@ export default new Command({
 			});
 		}
 
-		interaction.reply(
+		await interaction.reply(
 			`Your agents have been updated to ${agent1} and ${agent2} as your backup reserve!`
 		);
 	},
