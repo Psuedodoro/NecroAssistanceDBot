@@ -5,6 +5,7 @@ const elo = new EloRank(25);
 
 import RankedGame from "../schemas/RankedGame";
 import User from "../schemas/User";
+import eloToRank from "../functions/eloToRank";
 
 export default new Command({
 	name: "submit-score",
@@ -174,6 +175,9 @@ export default new Command({
 				userA.gamehistory.push(0);
 				userB.gamehistory.push(1);
 			}
+
+			userA.rank = eloToRank(userA.elorating);
+			userB.rank = eloToRank(userB.elorating);
 
 			await userA.save();
 			await userB.save();

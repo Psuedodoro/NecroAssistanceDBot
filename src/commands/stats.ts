@@ -92,11 +92,17 @@ export default new Command({
 				lbpos = "?";
 			}
 
+			var rank = userExists.rank;
+
+			if (past10games === "No past games.") {
+				rank = "Unranked";
+			}
+
 			interaction.reply({
 				embeds: [
 					{
 						title: `${user.username} [${lbpos}]`,
-						description: `Unranked\nGames Played - ${userExists.gamesPlayed}`,
+						description: `${rank}\nGames Played - ${userExists.gamesPlayed}`,
 						color: 0x3498db,
 						fields: [
 							{

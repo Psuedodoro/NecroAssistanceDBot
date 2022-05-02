@@ -1,5 +1,6 @@
 import { Command } from "../structures/Command";
 import User from "../schemas/User";
+import eloToRank from "../functions/eloToRank";
 
 export default new Command({
 	name: "debug-lb",
@@ -14,6 +15,8 @@ export default new Command({
 		for (let i = 0; i < users.length; i++) {
 			const user = users[i];
 			user.lbpos = i + 1;
+
+			user.rank = eloToRank(user.elorating);
 			user.save();
 		}
 

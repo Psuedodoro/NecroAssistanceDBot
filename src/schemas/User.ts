@@ -17,6 +17,7 @@ export interface IUser {
 	suspendedUntil: number;
 	suspendedReason: string;
 	agents: IAgentReservation;
+	rank: string;
 }
 
 const userSchema = new mongoose.Schema<IUser>({
@@ -35,6 +36,7 @@ const userSchema = new mongoose.Schema<IUser>({
 		main: String,
 		backup: String,
 	},
+	rank: String,
 });
 
 export default mongoose.model<IUser>("User", userSchema);

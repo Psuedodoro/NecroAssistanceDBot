@@ -2,6 +2,7 @@ import { Command } from "../structures/Command";
 
 import RankedGame from "../schemas/RankedGame";
 import User from "../schemas/User";
+import eloToRank from "../functions/eloToRank";
 
 export default new Command({
 	name: "rollback-game",
@@ -69,6 +70,7 @@ export default new Command({
 		for (let i = 0; i < users.length; i++) {
 			const user = users[i];
 			user.lbpos = i + 1;
+			user.rank = eloToRank(user.elorating);
 			user.save();
 		}
 
