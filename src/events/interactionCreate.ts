@@ -19,4 +19,13 @@ export default new Event("interactionCreate", async (interaction) => {
 			interaction: interaction as CommandInteraction,
 		});
 	}
+
+	if (interaction.isButton()) {
+		if (
+			interaction.customId === "leftwardsPage" ||
+			interaction.customId === "rightwardsPage"
+		) {
+			interaction.deferUpdate();
+		}
+	}
 });
