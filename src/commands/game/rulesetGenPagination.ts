@@ -32,11 +32,11 @@ const abilityChoice = [
 ];
 
 export default new Command({
-	name: "test-pagination",
+	name: "generate-rules",
 	description: "Test the pagination embed.",
 	options: [
 		{
-			name: "generate-rules",
+			name: "is-haven",
 			description: "Is this a game on the haven map with 3 sites?",
 			type: "BOOLEAN",
 			required: true,
