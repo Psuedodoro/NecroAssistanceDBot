@@ -32,7 +32,7 @@ const abilityChoice = [
 ];
 
 export default new Command({
-	name: "generate-rules",
+	name: "gen-ruleset",
 	description: "Test the pagination embed.",
 	options: [
 		{
@@ -63,9 +63,13 @@ export default new Command({
 		};
 
 		const genRulesEmbed = () => {
-			const plantingspec = genPlantOption();
-			const sitespec = genSelectedSite();
-			const abilityspec = genAbilities();
+			var plantingspec: string = genPlantOption();
+			const sitespec: string = genSelectedSite();
+			const abilityspec: string = genAbilities();
+
+			if (sitespec === "Mid :dart:") {
+				plantingspec = plantOptions[0];
+			}
 
 			return new MessageEmbed()
 				.setTitle("A Ruleset Has Been Generated!")
@@ -74,6 +78,7 @@ export default new Command({
 				.addField("**Selected Site:**", sitespec)
 				.addField("**Ability Allowances:**", abilityspec)
 				.addField("**Plant Options:**", plantingspec);
+			// TODO: Add page identifier.
 			/* .setFooter({
 					text: `Page ${pageno} of rules generated.`,
 				}); */
@@ -82,11 +87,6 @@ export default new Command({
 		const pages: MessageEmbed[] = [];
 
 		pages.push(genRulesEmbed());
-
-		//! MAKE SURE TO ADD THIS!
-		/* if (selectedSite === "Mid :dart:") {
-			plantOption = plantOptions[0];
-		} */
 
 		//* Pagination stuff
 		const buttonRow = new MessageActionRow().addComponents(
@@ -128,8 +128,8 @@ export default new Command({
 					break;
 
 				case "rightwardsPage":
-					page = page + 1 < pages.length ? ++page : 0;
 					pages.push(genRulesEmbed());
+					page = page + 1 < pages.length ? ++page : 0;
 					break;
 
 				default:
