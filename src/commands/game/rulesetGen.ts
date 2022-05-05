@@ -33,7 +33,7 @@ const abilityChoice = [
 
 export default new Command({
 	name: "gen-ruleset",
-	description: "Test the pagination embed.",
+	description: "Generate a ruleset for the game's rounds!",
 	options: [
 		{
 			name: "is-haven",
