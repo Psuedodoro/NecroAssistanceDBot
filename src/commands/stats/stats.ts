@@ -58,7 +58,10 @@ export default new Command({
 			);
 			return;
 		} else {
-			const userPfp = user.displayAvatarURL();
+			const userPfp = user.displayAvatarURL({
+				format: "png",
+				size: 1024,
+			});
 
 			let past10games;
 			var formattedHistory: string[] | string = [];
