@@ -42,6 +42,7 @@ export default new Command({
 		//* Actually do the rollback stuff
 		usersFromDB.forEach((user) => {
 			user.gamesPlayed--;
+			user.cooldown1v1 = 0;
 			user.elorating = user.ratingBefore;
 
 			if (user.gamesPlayed < 0) user.gamesPlayed = 0;

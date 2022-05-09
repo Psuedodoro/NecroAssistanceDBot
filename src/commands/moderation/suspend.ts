@@ -1,6 +1,7 @@
 import { Command } from "../../structures/Command";
-
 import User from "../../schemas/User";
+
+import { add } from "date-fns";
 
 export default new Command({
 	name: "suspend-user",
@@ -13,15 +14,21 @@ export default new Command({
 			required: true,
 		},
 		{
-			name: "suspended-length",
-			description:
-				"Amount of seconds to suspend the player for, 0 is permanent",
-			type: "NUMBER",
+			name: "is-perm",
+			description: "Is the suspension indefinite?",
+			type: "BOOLEAN",
 			required: true,
 		},
 		{
 			name: "reason",
-			description: "Reason for suspending the player",
+			description: "The reason for the suspension",
+			type: "STRING",
+			required: true,
+		},
+		{
+			name: "suspension-time",
+			description:
+				"The time to suspend the user for, with the unit of time at the end.",
 			type: "STRING",
 			required: true,
 		},
@@ -29,43 +36,72 @@ export default new Command({
 
 	run: async ({ interaction }) => {
 		const user = interaction.options.getUser("user");
-		const userName = user.username;
+		const isPerm = interaction.options.getBoolean("is-perm");
 		const reason = interaction.options.getString("reason");
-		const suspendedLength = interaction.options.getNumber("suspended-length");
+		const suspensionTime = interaction.options.getString("suspension-time");
 
 		const userExists = await User.findOne({ discordID: user.id });
 
 		if (!userExists) {
 			interaction.reply(
-				`${userName} has not been registered/does not exist to begin with.`
+				`${user.username} has not been registered/does not exist to begin with.`
 			);
 			return;
 		}
 
-		if (suspendedLength === 0) {
-			await interaction.reply(
-				`${userName} has been **permanently suspended** from Ranked Games`
-			);
-
-			userExists.suspended = true;
-			userExists.suspendedUntil = null;
-			userExists.suspendedReason = null;
-			userExists.suspendedReason = reason;
-
-			await userExists.save();
-			return;
-		} else {
-			userExists.suspendedUntil =
-				Math.round(Date.now() / 1000) + suspendedLength;
-			userExists.suspended = true;
-			userExists.suspendedReason = null;
-			userExists.suspendedReason = reason;
-
-			await userExists.save();
-
-			await interaction.reply(
-				`${userName} has been **suspended** from Ranked Games for ${suspendedLength} minutes`
-			);
+		if (!suspensionTime.match(/\d+[a-z]{1,2}/g)) {
+			interaction.reply({
+				content: `${suspensionTime.replace(
+					/\d+/g,
+					""
+				)} is not a valid time unit. Please use one of the following: \`m\`, \`d\`, \`s\`, \`y\`, \`mo\`\n(mo is for months.)`,
+				ephemeral: true,
+			});
 		}
+
+		//! TODO: IMPLEMENT INDEFINITE SUSPENSION
+
+		const suspensionTimeUnit = suspensionTime.match(/[a-z]{1,2}/g)[0];
+		const suspensionTimeAmount = Number(suspensionTime.match(/\d+/g))[0];
+
+		userExists.suspended = true;
+		userExists.suspendedReason = reason;
+
+		switch (suspensionTimeUnit) {
+			case "mo":
+				userExists.suspendedUntil = add(new Date(), {
+					months: suspensionTimeAmount,
+				}).getTime();
+
+				await interaction.reply(
+					`${user.username} has been **suspended** from Ranked Games for ${suspensionTimeAmount} months.`
+				);
+				break;
+
+			case "d":
+				userExists.suspendedUntil = add(new Date(), {
+					days: suspensionTimeAmount,
+				}).getTime();
+
+				userExists.suspensionUnit = "d";
+
+				await interaction.reply(
+					`${user.username} has been **suspended** from Ranked Games for ${suspensionTimeAmount} days.`
+				);
+				break;
+
+			case "s":
+				break;
+
+			case "y":
+				break;
+
+			default:
+				break;
+		}
+
+		await userExists.save();
+
+		return;
 	},
 });

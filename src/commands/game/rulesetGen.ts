@@ -32,7 +32,7 @@ const abilityChoice = [
 ];
 
 export default new Command({
-	name: "gen-ruleset",
+	name: "generate-rules",
 	description: "Generate a ruleset for the game's rounds!",
 	options: [
 		{

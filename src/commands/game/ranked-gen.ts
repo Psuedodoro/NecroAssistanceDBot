@@ -1,9 +1,12 @@
 import RankedGame from "../../schemas/RankedGame";
 import User from "../../schemas/User";
-
 import { Command } from "../../structures/Command";
 import makeTeams from "../../functions/teamsGenerator";
+import awaitTimeout from "../../functions/awaitTimeout";
+
 import { VoiceChannel } from "discord.js";
+
+import { DateTime } from "luxon";
 
 export default new Command({
 	name: "generate-ranked",
@@ -25,6 +28,7 @@ export default new Command({
 
 	run: async ({ interaction }) => {
 		if (!interaction.inCachedGuild()) return;
+
 		const doBanAgents = interaction.options.getBoolean("do-agent-banning");
 
 		const interactionUserFromDB = await User.findOne({
@@ -51,6 +55,13 @@ export default new Command({
 			player.replace(/<@!?(\d+)>/, "$1")
 		);
 
+		//* Suspended Check
+		const usersFromDB = await User.find({
+			discordID: {
+				$in: playerIDs,
+			},
+		});
+
 		//* --- THIS MAKES THE TEAMS - MOST IMPORTANT PART! --- !//
 		const makeTeamsDoFinal = async (playersArg) => {
 			const gameInfo = makeTeams(playersArg, doBanAgents);
@@ -61,6 +72,7 @@ export default new Command({
 				teamA: gameInfo.teamA,
 				teamB: gameInfo.teamB,
 			});
+
 			await game.save();
 
 			const { selectedmapimage, gameMap, teamA, teamB, gameRef, bannedAgents } =
@@ -78,6 +90,16 @@ export default new Command({
 			const bannedAgentsString = bannedAgents.length
 				? bannedAgents.join(", ")
 				: "No banned agents!";
+
+			if (players.length === 2) {
+				usersFromDB.forEach((user) => {
+					user.cooldown1v1 = DateTime.now().plus({
+						minutes: 60,
+					})["ts"];
+
+					user.save();
+				});
+			}
 
 			interaction.channel.send({
 				embeds: [
@@ -116,7 +138,7 @@ export default new Command({
 				],
 			});
 
-			await new Promise((resolve) => setTimeout(resolve, 5000));
+			await awaitTimeout(5000);
 
 			const generalVC = await interaction.guild.channels.cache.find(
 				(channel) => channel.id === "962385657794277466"
@@ -155,18 +177,10 @@ export default new Command({
 
 			return;
 		};
-		//*! --- End of team generation etc stuff --- !//
+		//* --- End of team generation etc stuff --- !//
 
-		//* Suspended Check
-		const usersFromDB = await User.find({
-			discordID: {
-				$in: playerIDs,
-			},
-		});
-
-		for (let i = 0; i < usersFromDB.length; i++) {
-			const user = usersFromDB[i];
-
+		// Suspension check
+		usersFromDB.forEach(async (user) => {
 			if (
 				user.suspended === true &&
 				(Math.round(Date.now() / 1000) > user.suspendedUntil ||
@@ -179,7 +193,24 @@ export default new Command({
 			} else {
 				user.suspended = false;
 				user.suspendedUntil = null;
-				await user.save();
+			}
+		});
+
+		if (players.length === 2) {
+			for (const user of usersFromDB) {
+				if (user.cooldown1v1 && user.cooldown1v1 > Date.now()) {
+					await interaction.reply(
+						`<@${
+							user.discordID
+						}> is on cooldown and cannot play ranked games.\nCooldown ends in ${Math.round(
+							DateTime.fromMillis(user.cooldown1v1)
+								.diff(DateTime.now(), "minutes")
+								.toObject().minutes
+						)} minutes.`
+					);
+
+					return;
+				}
 			}
 		}
 

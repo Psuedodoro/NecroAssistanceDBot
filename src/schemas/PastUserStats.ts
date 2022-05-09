@@ -5,7 +5,7 @@ export interface IAgentReservation {
 	backup: string;
 }
 
-export interface IUser {
+export interface IPastUser {
 	discordID: string;
 	elorating: number;
 	wins: number;
@@ -20,10 +20,9 @@ export interface IUser {
 	suspensionUnit: string;
 	agents: IAgentReservation;
 	rank: string;
-	cooldown1v1: number;
 }
 
-const userSchema = new mongoose.Schema<IUser>({
+const pastUserSchema = new mongoose.Schema<IPastUser>({
 	discordID: String,
 	elorating: Number,
 	wins: Number,
@@ -41,7 +40,6 @@ const userSchema = new mongoose.Schema<IUser>({
 		backup: String,
 	},
 	rank: String,
-	cooldown1v1: Number,
 });
 
-export default mongoose.model<IUser>("User", userSchema);
+export default mongoose.model<IPastUser>("PastUser", pastUserSchema);

@@ -1,6 +1,7 @@
 import { Command } from "../../structures/Command";
 
 import RankedGame from "../../schemas/RankedGame";
+import User from "../../schemas/User";
 
 export default new Command({
 	name: "abandon-game",
@@ -32,8 +33,26 @@ export default new Command({
 			return;
 		}
 
-		const actuallyAbandonMethod = () => {
+		const actuallyAbandonMethod = async () => {
+			const allPlayers: string[] = [
+				...gameExists.teamA,
+				...gameExists.teamB,
+			].map((user) => user.replace(/[<>!@]/g, ""));
+
+			// Get all players from the DB
+			const usersFromDB = await User.find({
+				discordID: {
+					$in: allPlayers,
+				},
+			});
+
+			usersFromDB.forEach((user) => {
+				user.cooldown1v1 = 0;
+				user.save();
+			});
+
 			gameExists.remove();
+
 			interaction.followUp(
 				`The game on ${gameExists.gameMap} with the ID ${gameExists.gameRef} has been abandoned!`
 			);
