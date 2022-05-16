@@ -10,8 +10,27 @@ export default new Command({
 			type: "USER",
 		},
 	],
+	subCommands: [
+		{
+			name: "pingv2",
+			description: "sex v2",
+			type: "SUB_COMMAND",
+		},
+	],
 
 	run: async ({ interaction }) => {
-		interaction.reply("Pong!");
+		switch (interaction.options.getSubcommand()) {
+			case "sex": {
+				await interaction.reply("PING v2!");
+
+				break;
+			}
+
+			default: {
+				await interaction.reply("No subcommand selected.");
+
+				break;
+			}
+		}
 	},
 });

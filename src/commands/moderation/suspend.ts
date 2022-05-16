@@ -73,8 +73,22 @@ export default new Command({
 					months: suspensionTimeAmount,
 				}).getTime();
 
+				userExists.suspensionUnit = "mo";
+
 				await interaction.reply(
 					`${user.username} has been **suspended** from Ranked Games for ${suspensionTimeAmount} months.`
+				);
+				break;
+
+			case "m":
+				userExists.suspendedUntil = add(new Date(), {
+					months: suspensionTimeAmount,
+				}).getTime();
+
+				userExists.suspensionUnit = "m";
+
+				await interaction.reply(
+					`${user.username} has been **suspended** from Ranked Games for ${suspensionTimeAmount} minutes.`
 				);
 				break;
 
@@ -91,9 +105,27 @@ export default new Command({
 				break;
 
 			case "s":
+				userExists.suspendedUntil = add(new Date(), {
+					seconds: suspensionTimeAmount,
+				}).getTime();
+
+				userExists.suspensionUnit = "s";
+
+				await interaction.reply(
+					`${user.username} has been **suspended** from Ranked Games for ${suspensionTimeAmount} seconds.`
+				);
 				break;
 
 			case "y":
+				userExists.suspendedUntil = add(new Date(), {
+					years: suspensionTimeAmount,
+				}).getTime();
+
+				userExists.suspensionUnit = "y";
+
+				await interaction.reply(
+					`${user.username} has been **suspended** from Ranked Games for ${suspensionTimeAmount} years.`
+				);
 				break;
 
 			default:
