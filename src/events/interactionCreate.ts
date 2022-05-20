@@ -21,11 +21,6 @@ export default new Event("interactionCreate", async (interaction) => {
 	}
 
 	if (interaction.isButton()) {
-		if (
-			interaction.customId === "leftwardsPage" ||
-			interaction.customId === "rightwardsPage"
-		) {
-			interaction.deferUpdate();
-		}
+		interaction.deferUpdate(); // To stop nonsense update messages
 	}
 });
