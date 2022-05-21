@@ -3,6 +3,7 @@ import {
 	GuildMember,
 	MessageActionRow,
 	MessageButton,
+	MessageEmbed,
 	User,
 	VoiceChannel,
 } from "discord.js";
@@ -83,14 +84,15 @@ export default new Command({
 				.setStyle("DANGER")
 		);
 
+		const requestEmbed = new MessageEmbed()
+			.setTitle("Accept the VC join request?")
+			.setDescription(
+				`${interaction.user.username} wants to join your voice channel, and you have been selected at random to accept the request!\nPlease press the corresponding button to allow the user to either join or leave.`
+			)
+			.setColor(0xefb859);
+
 		const requestMessage = await chosenPerson.user.send({
-			embeds: [
-				{
-					title: "You got a VC join request!",
-					description: `${interaction.user.username} wants to join your voice channel, and you have been selected at random to accept the request!\nPlease press the corresponding button to allow the user to either join or leave.`,
-					color: 0xefb859,
-				},
-			],
+			embeds: [requestEmbed],
 			components: [requestrow],
 		});
 
@@ -107,18 +109,24 @@ export default new Command({
 		var idledDenied = true;
 		collector.on("collect", async (ButtonInteraction) => {
 			idledDenied = false;
+
 			if (ButtonInteraction.customId === "accepttovc") {
 				collector.stop();
 
-				await chosenPerson.user.send({
-					embeds: [
-						{
-							title: `Successfully accepted the VC join request!`,
-							description: `You have successfully accepted the VC join request from ${interaction.user.username}`,
-							color: 0x00ff48,
-						},
-					],
+				requestrow.components.forEach((button) => {
+					button.setDisabled(true);
 				});
+
+				requestMessage.edit({ components: [requestrow] });
+
+				const updatedEmbed = new MessageEmbed()
+					.setTitle("You got a VC join request!")
+					.setDescription(
+						`${requestEmbed.description}\n\n***You have accepted this request.***`
+					)
+					.setColor(0x00ff48);
+
+				await requestMessage.edit({ embeds: [updatedEmbed] });
 
 				const vcToMoveTo = (await interaction.guild.channels.cache.find(
 					(channel) => channel.id === chosenPerson.voice.channel.id
@@ -139,15 +147,20 @@ export default new Command({
 			} else if (ButtonInteraction.customId === "denytovc") {
 				collector.stop();
 
-				await chosenPerson.user.send({
-					embeds: [
-						{
-							title: `Successfully denied the VC join request!`,
-							description: `You have successfully denied the VC join request from ${interaction.user.username}`,
-							color: 0x00ff48,
-						},
-					],
+				requestrow.components.forEach((button) => {
+					button.setDisabled(true);
 				});
+
+				requestMessage.edit({ components: [requestrow] });
+
+				const updatedEmbed = new MessageEmbed()
+					.setTitle("You got a VC join request!")
+					.setDescription(
+						`${requestEmbed.description}\n\n***You have denied this request.***`
+					)
+					.setColor(0xfd0303);
+
+				await requestMessage.edit({ embeds: [updatedEmbed] });
 
 				await interaction.user.send({
 					embeds: [
@@ -160,12 +173,6 @@ export default new Command({
 				});
 				return;
 			}
-		});
-
-		collector.on("end", async () => {
-			requestrow.setComponents().components.forEach((button) => {
-				button.setDisabled(true);
-			});
 		});
 	},
 });
