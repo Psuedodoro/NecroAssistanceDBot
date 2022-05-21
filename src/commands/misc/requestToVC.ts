@@ -110,6 +110,16 @@ export default new Command({
 			if (ButtonInteraction.customId === "accepttovc") {
 				collector.stop();
 
+				await chosenPerson.user.send({
+					embeds: [
+						{
+							title: `Successfully accepted the VC join request!`,
+							description: `You have successfully accepted the VC join request from ${interaction.user.username}`,
+							color: 0x00ff48,
+						},
+					],
+				});
+
 				const vcToMoveTo = (await interaction.guild.channels.cache.find(
 					(channel) => channel.id === chosenPerson.voice.channel.id
 				)) as VoiceChannel;
@@ -129,6 +139,16 @@ export default new Command({
 			} else if (ButtonInteraction.customId === "denytovc") {
 				collector.stop();
 
+				await chosenPerson.user.send({
+					embeds: [
+						{
+							title: `Successfully denied the VC join request!`,
+							description: `You have successfully denied the VC join request from ${interaction.user.username}`,
+							color: 0x00ff48,
+						},
+					],
+				});
+
 				await interaction.user.send({
 					embeds: [
 						{
@@ -143,17 +163,9 @@ export default new Command({
 		});
 
 		collector.on("end", async () => {
-			if (idledDenied === false) {
-				await interaction.user.send({
-					embeds: [
-						{
-							title: `AFK Timeout!`,
-							description: `No one has accepted your request, and it has now expired!\nTry again later!`,
-							color: 0xfd8d03,
-						},
-					],
-				});
-			}
+			requestrow.setComponents().components.forEach((button) => {
+				button.setDisabled(true);
+			});
 		});
 	},
 });
