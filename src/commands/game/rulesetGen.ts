@@ -1,11 +1,11 @@
-import {
+import Eris, {
 	Message,
 	MessageActionRow,
 	MessageButton,
 	MessageEmbed,
-} from "discord.js";
-import paginationEmbed from "discord.js-pagination";
-import { Command } from "../../structures/Command";
+} from "eris";
+import paginationEmbed from "eris-pagination";
+import { BCommand } from "../../structures/Command";
 
 //* Data for the random generation
 const plantOptions = [
@@ -31,23 +31,22 @@ const abilityChoice = [
 	"No Abilities :no_entry:",
 ];
 
-export default new Command({
+export default new BCommand({
 	name: "generate-rules",
 	description: "Generate a ruleset for the game's rounds!",
+	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 	options: [
 		{
 			name: "is-haven",
 			description: "Is this a game on the haven map with 3 sites?",
-			type: "BOOLEAN",
+			type: Eris.Constants.ApplicationCommandOptionTypes.BOOLEAN,
 			required: true,
 		},
 	],
 
 	run: async ({ interaction }) => {
-		if (!interaction.inCachedGuild()) return;
-
 		//* Randomised data for the pagination
-		const isHaven = interaction.options.getBoolean("is-haven");
+		const isHaven = interaction.data.options[0].value as boolean;
 		const siteSelections = isHaven ? havenSites : standardSites;
 
 		const genPlantOption = () => {
@@ -103,7 +102,7 @@ export default new Command({
 
 		let page = 0;
 
-		const message = (await interaction.reply({
+		const message = (await interaction.createMessage({
 			embeds: [pages[page]],
 			components: [buttonRow],
 			fetchReply: true,

@@ -1,29 +1,13 @@
-import {
-	ApplicationCommand,
-	ApplicationCommandPermissionData,
-	ChatInputApplicationCommandData,
-	CommandInteraction,
-	CommandInteractionOptionResolver,
-	GuildMember,
-	PermissionResolvable,
-	ApplicationCommandSubCommand,
-} from "discord.js";
-import { ExtendedClient } from "../structures/Client";
-
-/* export interface ExtendedInteraction extends CommandInteraction {
-	member: GuildMember;
-} */
+import { ApplicationCommandStructure, CommandInteraction } from "eris";
+import { BetterClient } from "../structures/Client";
 
 interface RunOptions {
-	client: ExtendedClient;
+	client: BetterClient;
 	interaction: CommandInteraction;
-	args: CommandInteractionOptionResolver;
 }
 
 type RunFunction = (options: RunOptions) => any;
 
-export type CommandType = {
-	userPermissions?: PermissionResolvable[];
-	subCommands?: ApplicationCommandSubCommand[];
+export type CommandType = ApplicationCommandStructure & {
 	run: RunFunction;
-} & ChatInputApplicationCommandData;
+};

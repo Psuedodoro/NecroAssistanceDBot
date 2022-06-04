@@ -1,61 +1,71 @@
-import { Command } from "../../structures/Command";
+import { BCommand } from "../../structures/Command";
 import User from "../../schemas/User";
-
 import { add } from "date-fns";
+import Eris from "eris";
+const { ApplicationCommandOptionTypes, ApplicationCommandTypes } =
+	Eris.Constants;
 
-export default new Command({
+export default new BCommand({
 	name: "suspend-user",
 	description: "Suspend a user from playing Ranked Games",
+	type: ApplicationCommandTypes.CHAT_INPUT,
 	options: [
 		{
 			name: "user",
 			description: "The user to suspend",
-			type: "USER",
+			type: ApplicationCommandOptionTypes.USER,
 			required: true,
 		},
 		{
 			name: "is-perm",
 			description: "Is the suspension indefinite?",
-			type: "BOOLEAN",
+			type: ApplicationCommandOptionTypes.BOOLEAN,
 			required: true,
 		},
 		{
 			name: "reason",
 			description: "The reason for the suspension",
-			type: "STRING",
+			type: ApplicationCommandOptionTypes.STRING,
 			required: true,
 		},
 		{
 			name: "suspension-time",
 			description:
 				"The time to suspend the user for, with the unit of time at the end.",
-			type: "STRING",
+			type: ApplicationCommandOptionTypes.STRING,
 			required: true,
 		},
 	],
 
 	run: async ({ interaction }) => {
-		const user = interaction.options.getUser("user");
-		const isPerm = interaction.options.getBoolean("is-perm");
-		const reason = interaction.options.getString("reason");
-		const suspensionTime = interaction.options.getString("suspension-time");
+		const user = interaction.data.resolved.users.get(
+			interaction.data.options.find((o) => o.name === "user").value as string
+		);
+		// TODO: Implement isPerm
+		const isPerm = interaction.data.options.find((o) => o.name === "is-perm")
+			.value as boolean;
+		const reason = interaction.data.options.find((o) => o.name === "reason")
+			.value as string;
+		const suspensionTime = interaction.data.options.find(
+			(o) => o.name === "suspension-time"
+		).value as string;
 
 		const userExists = await User.findOne({ discordID: user.id });
 
 		if (!userExists) {
-			interaction.reply(
+			interaction.createMessage(
 				`${user.username} has not been registered/does not exist to begin with.`
 			);
 			return;
 		}
 
 		if (!suspensionTime.match(/\d+[a-z]{1,2}/g)) {
-			interaction.reply({
+			interaction.createMessage({
 				content: `${suspensionTime.replace(
 					/\d+/g,
 					""
 				)} is not a valid time unit. Please use one of the following: \`m\`, \`d\`, \`s\`, \`y\`, \`mo\`\n(mo is for months.)`,
-				ephemeral: true,
+				flags: 64,
 			});
 		}
 
@@ -75,7 +85,7 @@ export default new Command({
 
 				userExists.suspensionUnit = "mo";
 
-				await interaction.reply(
+				await interaction.createMessage(
 					`${user.username} has been **suspended** from Ranked Games for ${suspensionTimeAmount} months.`
 				);
 				break;
@@ -87,7 +97,7 @@ export default new Command({
 
 				userExists.suspensionUnit = "m";
 
-				await interaction.reply(
+				await interaction.createMessage(
 					`${user.username} has been **suspended** from Ranked Games for ${suspensionTimeAmount} minutes.`
 				);
 				break;
@@ -99,7 +109,7 @@ export default new Command({
 
 				userExists.suspensionUnit = "d";
 
-				await interaction.reply(
+				await interaction.createMessage(
 					`${user.username} has been **suspended** from Ranked Games for ${suspensionTimeAmount} days.`
 				);
 				break;
@@ -111,7 +121,7 @@ export default new Command({
 
 				userExists.suspensionUnit = "s";
 
-				await interaction.reply(
+				await interaction.createMessage(
 					`${user.username} has been **suspended** from Ranked Games for ${suspensionTimeAmount} seconds.`
 				);
 				break;
@@ -123,7 +133,7 @@ export default new Command({
 
 				userExists.suspensionUnit = "y";
 
-				await interaction.reply(
+				await interaction.createMessage(
 					`${user.username} has been **suspended** from Ranked Games for ${suspensionTimeAmount} years.`
 				);
 				break;

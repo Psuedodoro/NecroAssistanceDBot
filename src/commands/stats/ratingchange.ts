@@ -1,10 +1,12 @@
 import User from "../../schemas/User";
+import { Constants } from "eris";
+const { CHAT_INPUT } = Constants.ApplicationCommandTypes;
+import { BCommand } from "../../structures/Command";
 
-import { Command } from "../../structures/Command";
-
-export default new Command({
+export default new BCommand({
 	name: "elo-change",
 	description: "See how much your ELO rating changed since your last game.",
+	type: CHAT_INPUT,
 
 	run: async ({ interaction }) => {
 		const user = interaction.user;
@@ -12,23 +14,23 @@ export default new Command({
 		const userExists = await User.findOne({ discordID: user.id });
 
 		if (!userExists) {
-			interaction.reply(
+			interaction.createMessage(
 				"You are not registered! Please use the **/register** slash command to get started!"
 			);
 			return;
 		}
 
 		if (userExists.gamehistory.length === 0) {
-			interaction.reply("You have not played any games yet!");
+			interaction.createMessage("You have not played any games yet!");
 			return;
 		}
 
 		if (userExists.ratingBefore === 0) {
-			interaction.reply("Your elo has not changed.");
+			interaction.createMessage("Your elo has not changed.");
 			return;
 		}
 
-		interaction.reply(
+		interaction.createMessage(
 			`Your elo has changed by ${
 				userExists.elorating - userExists.ratingBefore
 			}`

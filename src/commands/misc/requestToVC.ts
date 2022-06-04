@@ -1,4 +1,4 @@
-import {
+import Eris, {
 	ButtonInteraction,
 	GuildMember,
 	MessageActionRow,
@@ -6,70 +6,72 @@ import {
 	MessageEmbed,
 	User,
 	VoiceChannel,
-} from "discord.js";
-import { Command } from "../../structures/Command";
+} from "eris";
+import { bot } from "../..";
+import { BCommand } from "../../structures/Command";
 
 const defaultPeople = ["500320519455899658", "930744788859359282"];
 
-export default new Command({
+export default new BCommand({
 	name: "request-vc",
 	description: "Request a member in a voice channel to join",
+	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 	options: [
 		{
 			name: "vc",
 			description: "voice channel to join",
-			type: "CHANNEL",
-			channelTypes: ["GUILD_VOICE"],
+			type: Eris.Constants.ApplicationCommandOptionTypes.CHANNEL,
+			channel_types: [Eris.Constants.ChannelTypes.GUILD_VOICE],
 			required: true,
 		},
 	],
 
 	run: async ({ interaction }) => {
-		const vchannel = interaction.options.getChannel("vc") as VoiceChannel;
+		const vchannel = interaction.data.resolved.channels.get(
+			interaction.data.options[0].value as string
+		) as VoiceChannel;
 
-		const interactionUserInGuild = interaction.guild.members.cache.find(
-			(member) => member.id === interaction.user.id
-		);
+		const interactionUserInGuild = interaction.member;
 
-		if (!interactionUserInGuild.voice.channel) {
-			interaction.reply({
+		if (!interactionUserInGuild.voiceState.channelID) {
+			interaction.createMessage({
 				content: "You need to be in a voice channel to request to join a VC!",
-				ephemeral: true,
+				flags: 64,
 			});
 			return;
 		}
 
 		if (!vchannel) {
-			return interaction.reply({
+			return interaction.createMessage({
 				content: "Invalid voice channel",
-				ephemeral: true,
+				flags: 64,
 			});
 		}
 
-		if (vchannel.members.size === 0) {
-			return interaction.reply({
-				content: "No members in this channel",
-				ephemeral: true,
+		if (vchannel.voiceMembers.size === 0) {
+			return interaction.createMessage({
+				content: "No members in this channel to send a request to!",
+				flags: 64,
 			});
 		}
 
-		const defaultUsersInVC = vchannel.members.filter((m) =>
+		const defaultUsersInVC = vchannel.voiceMembers.filter((m) =>
 			defaultPeople.includes(m.id)
 		);
 
 		// Get person to send the vc join request to
 		var chosenPerson: GuildMember;
-		if (defaultUsersInVC.size > 0) {
+		if (defaultUsersInVC.length > 0) {
 			chosenPerson = defaultUsersInVC.random();
-		} else if (defaultUsersInVC.size === 1) {
+		} else if (defaultUsersInVC.length === 1) {
 			chosenPerson = defaultUsersInVC.first();
 		} else {
-			chosenPerson = vchannel.members.random();
+			chosenPerson = vchannel.voiceMembers.random();
 		}
 
-		await interaction.reply({
+		await interaction.createMessage({
 			content: `Sending a VC request to ${chosenPerson.user.username}`,
-			ephemeral: true,
+			flags: 64,
 		});
 
 		const requestrow = new MessageActionRow().addComponents(

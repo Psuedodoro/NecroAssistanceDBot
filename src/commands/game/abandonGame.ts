@@ -1,35 +1,35 @@
-import { Command } from "../../structures/Command";
+import { BCommand } from "../../structures/Command";
 
 import RankedGame from "../../schemas/RankedGame";
 import User from "../../schemas/User";
+import Eris from "eris";
 
-export default new Command({
+export default new BCommand({
 	name: "abandon-game",
 	description: "Abandon a game due to regulations",
+	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 	options: [
 		{
 			name: "game-reference",
 			description: "The ID of the game to abandon/cancel",
-			type: "STRING",
+			type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
 			required: true,
 		},
 	],
 
 	run: async ({ interaction }) => {
 		//* Message conf type guard
-		if (!interaction.inCachedGuild()) return;
-
-		const gameRefOption = interaction.options.getString("game-reference");
+		const gameRefOption = interaction.data.options[0].value as string;
 
 		const gameExists = await RankedGame.findOne({ gameRef: gameRefOption });
 
 		if (!gameExists) {
-			interaction.reply("That game doesn't exist! Please try again.");
+			interaction.createMessage("That game doesn't exist! Please try again.");
 			return;
 		}
 
 		if (gameRefOption.length !== 5) {
-			interaction.reply("Please enter a valid game ID (5 chars long)!");
+			interaction.createMessage("Please enter a valid game ID (5 chars long)!");
 			return;
 		}
 
@@ -53,7 +53,7 @@ export default new Command({
 
 			gameExists.remove();
 
-			interaction.followUp(
+			interaction.createFollowup(
 				`The game on ${gameExists.gameMap} with the ID ${gameExists.gameRef} has been abandoned!`
 			);
 		};
@@ -65,7 +65,7 @@ export default new Command({
 			player.replace(/<@!?(\d+)>/, "$1")
 		);
 
-		const message = await interaction.reply({
+		const message = await interaction.createMessage({
 			content: `Can the following people please confirm that they want to abandon the game:\n${allGamePlayerMentions.join(
 				", "
 			)}\n**You have 15 seconds to confirm abandonment of the game.**`,

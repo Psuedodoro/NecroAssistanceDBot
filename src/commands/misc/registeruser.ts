@@ -1,11 +1,11 @@
 import User from "../../schemas/User";
+import Eris, { CommandInteraction } from "eris";
+import { BCommand } from "../../structures/Command";
 
-import { CommandInteraction } from "discord.js";
-import { Command } from "../../structures/Command";
-
-export default new Command({
+export default new BCommand({
 	name: "register",
 	description: "Register to use all things ranked!",
+	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 
 	run: async ({ interaction }) => {
 		const user = interaction.user;
@@ -13,7 +13,7 @@ export default new Command({
 		const userExists = await User.findOne({ discordID: user.id });
 
 		if (userExists) {
-			interaction.reply("You are already registered!");
+			interaction.createMessage("You are already registered!");
 			return;
 		} else {
 			const newUser = new User({
@@ -27,7 +27,7 @@ export default new Command({
 			});
 
 			await newUser.save();
-			interaction.reply("You have now successfully been registered!");
+			interaction.createMessage("You have now successfully been registered!");
 		}
 	},
 });

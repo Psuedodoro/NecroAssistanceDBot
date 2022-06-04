@@ -1,11 +1,11 @@
-import { MessageEmbed, TextChannel } from "discord.js";
+import { MessageEmbed, TextChannel } from "eris";
 import { client } from "../../index";
-import { Command } from "../../structures/Command";
+import { BCommand } from "../../structures/Command";
 import User from "../../schemas/User";
 
 import allAgents from "../../data/valorantAgents.json";
 
-export default new Command({
+export default new BCommand({
 	name: "change-agents",
 	description: "Change the agents for your profile!",
 	options: [
@@ -26,7 +26,6 @@ export default new Command({
 	],
 
 	run: async ({ interaction }) => {
-		if (!interaction.inCachedGuild()) return;
 		const agent1 = interaction.options.getString("agent-1");
 		const agent2 = interaction.options.getString("agent-2");
 
@@ -46,7 +45,9 @@ export default new Command({
 		});
 
 		if (!agentsDocument) {
-			interaction.reply("Please do /register to be able to use this command!");
+			interaction.createMessage(
+				"Please do /register to be able to use this command!"
+			);
 			return;
 		}
 
@@ -89,7 +90,7 @@ export default new Command({
 			});
 		}
 
-		await interaction.reply(
+		await interaction.createMessage(
 			`Your agents have been updated to ${agent1} and ${agent2} as your backup reserve!`
 		);
 	},

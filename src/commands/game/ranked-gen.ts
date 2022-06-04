@@ -1,51 +1,54 @@
 import RankedGame from "../../schemas/RankedGame";
 import User from "../../schemas/User";
-import { Command } from "../../structures/Command";
+import { BCommand } from "../../structures/Command";
 import makeTeams from "../../functions/teamsGenerator";
 import awaitTimeout from "../../functions/awaitTimeout";
 
-import { VoiceChannel } from "discord.js";
+import Eris, { VoiceChannel } from "eris";
 
 import { DateTime } from "luxon";
+import { bot } from "../..";
 
-export default new Command({
+export default new BCommand({
 	name: "generate-ranked",
 	description: "Generate a ranked game!",
+	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 	options: [
 		{
 			name: "players",
 			description: "Enter all the players that you want to add to the game.",
-			type: "STRING",
+			type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
 			required: true,
 		},
 		{
 			name: "do-agent-banning",
 			description: "Do you want to be able to ban agents?",
-			type: "BOOLEAN",
+			type: Eris.Constants.ApplicationCommandOptionTypes.BOOLEAN,
 			required: true,
 		},
 	],
 
 	run: async ({ interaction }) => {
-		if (!interaction.inCachedGuild()) return;
-
-		const doBanAgents = interaction.options.getBoolean("do-agent-banning");
+		const doBanAgents = interaction.data.options.find(
+			(o) => o.name === "do-agent-banning"
+		).value as boolean;
 
 		const interactionUserFromDB = await User.findOne({
 			discordID: interaction.user.id,
 		});
 
-		const players = interaction.options
-			.getString("players")
-			.match(/<@!?(\d+)>/g);
+		const _players = interaction.data.options.find(
+			(o) => o.name === "do-agent-banning"
+		).value as string;
+		const players = _players.match(/<@!?(\d+)>/g);
 
 		if (!players || players.length < 2) {
-			interaction.reply("You need to enter at least 2 players!");
+			interaction.createMessage("You need to enter at least 2 players!");
 			return;
 		}
 
 		if (players.length % 2 !== 0) {
-			interaction.reply(
+			interaction.createMessage(
 				"You need to enter an even number of players to play a ranked game (this is to calculate ELO and more)."
 			);
 			return;
@@ -101,7 +104,7 @@ export default new Command({
 				});
 			}
 
-			interaction.channel.send({
+			interaction.channel.createMessage({
 				embeds: [
 					{
 						title: `A **Ranked** Game Has Been Generated On ${gameMap}!`,
@@ -131,8 +134,6 @@ export default new Command({
 						],
 						image: {
 							url: `${selectedmapimage}`,
-							height: 960,
-							width: 540,
 						},
 					},
 				],
@@ -140,24 +141,16 @@ export default new Command({
 
 			await awaitTimeout(5000);
 
-			const generalVC = await interaction.guild.channels.cache.find(
+			const guild = bot.guilds.get(bot.guildID);
+
+			const generalVC = (await guild.channels.find(
 				(channel) => channel.id === "962385657794277466"
-			);
+			)) as Eris.VoiceChannel;
 
-			const teamAVC = (await interaction.guild.channels.cache.find(
-				(channel) => channel.id === "962385681148157992"
-			)) as VoiceChannel;
+			const teamAVC = "962385681148157992";
+			const teamBVC = "962385706158788618";
 
-			const teamBVC = (await interaction.guild.channels.cache.find(
-				(channel) => channel.id === "962385706158788618"
-			)) as VoiceChannel;
-
-			if (!generalVC.isVoice()) {
-				console.log("GENERAL VC IS INVALID!");
-				return;
-			}
-
-			const generalVCMembers = generalVC.members;
+			const generalVCMembers = generalVC.voiceMembers;
 
 			const teamAMembers = generalVCMembers.filter((member) =>
 				teamAIDs.includes(member.id)
@@ -168,11 +161,15 @@ export default new Command({
 			);
 
 			teamAMembers.forEach(async (member) => {
-				await member.voice.setChannel(teamAVC);
+				await member.edit({
+					channelID: teamAVC,
+				});
 			});
 
 			teamBMembers.forEach(async (member) => {
-				await member.voice.setChannel(teamBVC);
+				await member.edit({
+					channelID: teamBVC,
+				});
 			});
 
 			return;
@@ -186,7 +183,7 @@ export default new Command({
 				(Math.round(Date.now() / 1000) > user.suspendedUntil ||
 					user.suspendedUntil === null)
 			) {
-				interaction.reply(
+				interaction.createMessage(
 					`<@${user.discordID}> is suspended and cannot play ranked games.\nSuspension reason: ${user.suspendedReason}`
 				);
 				return;
@@ -199,7 +196,7 @@ export default new Command({
 		if (players.length === 2) {
 			for (const user of usersFromDB) {
 				if (user.cooldown1v1 && user.cooldown1v1 > Date.now()) {
-					await interaction.reply(
+					await interaction.createMessage(
 						`<@${
 							user.discordID
 						}> is on cooldown and cannot play ranked games.\nCooldown ends in ${Math.round(
@@ -215,7 +212,7 @@ export default new Command({
 		}
 
 		//* --- Game Starting Conformation Message --- *//
-		const message = await interaction.reply({
+		const message = await interaction.createMessage({
 			content:
 				"Press on the check mark below to verify that you want to start and join the game.\n**You have 15 seconds to confirm.**",
 			fetchReply: true,

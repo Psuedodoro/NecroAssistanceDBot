@@ -1,25 +1,15 @@
-import { ExtendedClient } from "./structures/Client";
-import mongoose from "mongoose";
-import dotenv from "dotenv";
-import { Intents } from "discord.js";
-dotenv.config();
+import Eris, { Client, type ApplicationCommand } from "eris";
+import { botToken, guildID } from "../config.json";
+import { BetterClient } from "./structures/Client";
 
-const mongoURI = process.env.mongoURI;
+export const otype = Eris.Constants.ApplicationCommandOptionTypes;
 
-export const client = new ExtendedClient({
-	intents: [
-		Intents.FLAGS.GUILDS,
-		Intents.FLAGS.GUILD_MEMBERS,
-		Intents.FLAGS.GUILD_BANS,
-		Intents.FLAGS.GUILD_WEBHOOKS,
-		Intents.FLAGS.GUILD_VOICE_STATES,
-		Intents.FLAGS.GUILD_MESSAGES,
-		Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-	],
-});
+export const bot = new BetterClient(
+	botToken,
+	{
+		intents: ["allNonPrivileged"],
+	},
+	guildID
+);
 
-mongoose.connect(mongoURI, () => {
-	console.log("📂 DB Connected");
-});
-
-client.start();
+bot.start();

@@ -1,10 +1,11 @@
 import User from "../../schemas/User";
+import Eris from "eris";
+import { BCommand } from "../../structures/Command";
 
-import { Command } from "../../structures/Command";
-
-export default new Command({
+export default new BCommand({
 	name: "leaderboard-ranked",
 	description: "Get all the players from best elo to worst from Ranked Games",
+	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 
 	run: async ({ interaction }) => {
 		var users = await User.find({});
@@ -27,10 +28,9 @@ export default new Command({
 			position.push(`#${i + 1}`);
 		}
 
-		interaction.reply({
+		interaction.createMessage({
 			embeds: [
 				{
-					type: "rich",
 					title: `Ranked Game Leaderboard`,
 					description: `Team Necro's current leaderboard standings for private ranked games!`,
 					color: 0xefb859,

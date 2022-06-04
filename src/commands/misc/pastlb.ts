@@ -1,13 +1,17 @@
 import PastUserStats from "../../schemas/PastUserStats";
-import { Command } from "../../structures/Command";
+import { BCommand } from "../../structures/Command";
+import Eris from "eris";
 
-export default new Command({
+export default new BCommand({
 	name: "pastlb",
 	description: "Get all the players from best elo to worst from Ranked Games",
+	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 
 	run: async ({ interaction }) => {
 		if (!(interaction.user.id === "930744788859359282")) {
-			interaction.reply("You do not have permission to use this command!");
+			interaction.createMessage(
+				"You do not have permission to use this command!"
+			);
 		}
 
 		var users = await PastUserStats.find({});
@@ -30,7 +34,7 @@ export default new Command({
 			position.push(`#${i + 1}`);
 		}
 
-		interaction.reply({
+		interaction.createMessage({
 			embeds: [
 				{
 					title: `Previous Ranked Game Leaderboard`,

@@ -1,36 +1,35 @@
-import { Command } from "../../structures/Command";
+import { BCommand } from "../../structures/Command";
+import Eris, { VoiceChannel } from "eris";
+import { bot } from "../..";
 
-import RankedGame from "../../schemas/RankedGame";
-import { VoiceChannel } from "discord.js";
-
-export default new Command({
+export default new BCommand({
 	name: "reset-vcs",
 	description: "Put everyone back in the general VC",
+	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 
 	run: async ({ interaction }) => {
-		const private1VC = (await interaction.guild.channels.cache.find(
-			(channel) => channel.id === "962385681148157992"
-		)) as VoiceChannel;
+		const allChannels = bot.guilds
+			.get(interaction.guildID)
+			.channels.filter(
+				(channel) => channel.type === Eris.Constants.ChannelTypes.GUILD_VOICE
+			) as VoiceChannel[];
 
-		const private2VC = (await interaction.guild.channels.cache.find(
-			(channel) => channel.id === "962385706158788618"
-		)) as VoiceChannel;
+		const allMembers = allChannels.map((channel) => channel.voiceMembers);
 
-		const generalVC = (await interaction.guild.channels.cache.find(
-			(channel) => channel.id === "962385657794277466"
-		)) as VoiceChannel;
-
-		private1VC.members.forEach(async (member) => {
-			await member.voice.setChannel(generalVC);
+		allMembers.forEach((member) => {
+			member.map((m) => {
+				m.edit(
+					{
+						channelID: "962385657794277466",
+					},
+					"Reset VC Command"
+				);
+			});
 		});
 
-		private2VC.members.forEach(async (member) => {
-			await member.voice.setChannel(generalVC);
-		});
-
-		interaction.reply({
+		interaction.createMessage({
 			content: "Everyone has been moved to the general VC!",
-			ephemeral: true,
+			flags: 64,
 		});
 	},
 });

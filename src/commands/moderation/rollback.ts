@@ -1,30 +1,32 @@
-import { Command } from "../../structures/Command";
+import { BCommand } from "../../structures/Command";
 
 import RankedGame from "../../schemas/RankedGame";
 import User from "../../schemas/User";
 import eloToRank from "../../functions/eloToRank";
 
-export default new Command({
+export default new BCommand({
 	name: "rollback-game",
 	description: "Rolls back everyone's stats to the game before last.",
+	type: 1,
 	options: [
 		{
 			name: "game-id",
 			description: "The ID of the game to rollback.",
-			type: "STRING",
+			type: 3,
 			required: true,
 		},
 	],
 
 	run: async ({ interaction }) => {
-		const gameref = interaction.options.getString("game-id");
+		const gameref = interaction.data.options.find((o) => o.name === "game-id")
+			.value as string;
 
 		const gameExists = await RankedGame.findOne({
 			gameRef: gameref,
 		});
 
 		if (!gameExists) {
-			interaction.reply("Game does not exist!");
+			interaction.createMessage("Game does not exist!");
 			return;
 		}
 
@@ -77,7 +79,7 @@ export default new Command({
 
 		gameExists.delete();
 
-		interaction.reply(
+		interaction.createMessage(
 			`Game ${gameref} on ${gameExists.gameMap} has been rolled back and stats have been affected accordingly.\nThe game has also been deleted from the system.`
 		);
 	},
