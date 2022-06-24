@@ -16,9 +16,9 @@ export default new BCommand({
 	],
 
 	run: async ({ interaction }) => {
-		const user = interaction.data.resolved.members.get(
-			interaction.data.options[0].value as string
-		);
+		const user: Eris.User = interaction.data.resolved.users
+			.values()
+			.next().value;
 
 		const userExists = await User.findOne({
 			discordID: user.id,

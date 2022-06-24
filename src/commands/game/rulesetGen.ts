@@ -1,10 +1,6 @@
-import Eris, {
-	Message,
-	MessageActionRow,
-	MessageButton,
-	MessageEmbed,
-} from "eris";
-import paginationEmbed from "eris-pagination";
+import Eris, { ActionRow, ComponentInteraction, Embed, Message } from "eris";
+import { bot } from "../..";
+import { EmeraldCollector } from "../../emerald_module/collectors/EmeraldButtonInteractions";
 import { BCommand } from "../../structures/Command";
 
 //* Data for the random generation
@@ -70,58 +66,76 @@ export default new BCommand({
 				plantingspec = plantOptions[0];
 			}
 
-			return new MessageEmbed()
-				.setTitle("A Ruleset Has Been Generated!")
-				.setDescription("Here are the rules for this round:")
-				.setColor(0x00bbff)
-				.addField("**Selected Site:**", sitespec)
-				.addField("**Ability Allowances:**", abilityspec)
-				.addField("**Plant Options:**", plantingspec);
-			// TODO: Add page identifier.
-			/* .setFooter({
-					text: `Page ${pageno} of rules generated.`,
-				}); */
+			const builtEmbed: Embed = {
+				type: "rich",
+				title: "A Ruleset Has Been Generated!",
+				description: "Here are the rules for this round:",
+				color: 0x00bbff,
+				fields: [
+					{
+						name: "**Selected Site:**",
+						value: sitespec,
+					},
+					{
+						name: "**Ability Allowances:**",
+						value: abilityspec,
+					},
+					{
+						name: "**Plant Options:**",
+						value: plantingspec,
+					},
+				],
+			};
+
+			return builtEmbed;
 		};
 
-		const pages: MessageEmbed[] = [];
+		const pages: Embed[] = [];
 
 		pages.push(genRulesEmbed());
 
 		//* Pagination stuff
-		const buttonRow = new MessageActionRow().addComponents(
-			new MessageButton()
-				.setLabel("◀")
-				.setStyle("PRIMARY")
-				.setCustomId("leftwardsPage"),
-
-			new MessageButton()
-				.setLabel("▶")
-				.setCustomId("rightwardsPage")
-				.setStyle("PRIMARY")
-		);
+		const buttonRow: ActionRow = {
+			type: Eris.Constants.ComponentTypes.ACTION_ROW,
+			components: [
+				{
+					type: Eris.Constants.ComponentTypes.BUTTON,
+					label: "◀",
+					style: Eris.Constants.ButtonStyles.PRIMARY,
+					custom_id: "leftwardsPage",
+				},
+				{
+					type: Eris.Constants.ComponentTypes.BUTTON,
+					label: "▶",
+					style: Eris.Constants.ButtonStyles.PRIMARY,
+					custom_id: "rightwardsPage",
+				},
+			],
+		};
 
 		let page = 0;
 
-		const message = (await interaction.createMessage({
+		await interaction.createMessage({
 			embeds: [pages[page]],
 			components: [buttonRow],
-			fetchReply: true,
-		})) as Message;
+		});
 
-		const filter = (i) => {
-			return i.user.id === interaction.user.id;
+		const msg = await interaction.getOriginalMessage();
+
+		const filter = (i: ComponentInteraction) => {
+			return i.member.id === interaction.member.id;
 		};
 
-		const collector = message.createMessageComponentCollector({
+		const collector = new EmeraldCollector({
+			client: bot,
 			filter,
-			componentType: "BUTTON",
 			time: 300 * 1000,
 		});
 
-		collector.on("collect", (buttonInteraction) => {
+		collector.on("collect", async (i: ComponentInteraction) => {
 			collector.resetTimer();
 
-			switch (buttonInteraction.customId) {
+			switch (i.data.custom_id) {
 				case "leftwardsPage":
 					page = page > 0 ? --page : pages.length - 1;
 					break;
@@ -135,16 +149,14 @@ export default new BCommand({
 					break;
 			}
 
-			message.edit({
+			await msg.edit({
 				embeds: [pages[page]],
 				components: [buttonRow],
 			});
 		});
 
 		collector.on("end", () => {
-			console.log("Collector ended");
-
-			collector.stop();
+			console.log("Rule-set Collector Ended");
 		});
 	},
 });

@@ -4,10 +4,12 @@ import { BCommand } from "../../structures/Command";
 import makeTeams from "../../functions/teamsGenerator";
 import awaitTimeout from "../../functions/awaitTimeout";
 
-import Eris, { VoiceChannel } from "eris";
+import Eris, { Message, VoiceChannel } from "eris";
 
 import { DateTime } from "luxon";
 import { bot } from "../..";
+import { EmeraldReactionCollector } from "../../emerald_module/collectors/EmeraldReactions";
+import { emeraldCollectedReactions } from "../../emerald_module/Typings";
 
 export default new BCommand({
 	name: "generate-ranked",
@@ -33,13 +35,16 @@ export default new BCommand({
 			(o) => o.name === "do-agent-banning"
 		).value as boolean;
 
+		const _players = interaction.data.options
+			.find((o) => o.name === "players")
+			.value.toString();
+
+		console.log(_players, "eeee");
+
 		const interactionUserFromDB = await User.findOne({
-			discordID: interaction.user.id,
+			discordID: interaction.member.id,
 		});
 
-		const _players = interaction.data.options.find(
-			(o) => o.name === "do-agent-banning"
-		).value as string;
 		const players = _players.match(/<@!?(\d+)>/g);
 
 		if (!players || players.length < 2) {
@@ -212,22 +217,26 @@ export default new BCommand({
 		}
 
 		//* --- Game Starting Conformation Message --- *//
-		const message = await interaction.createMessage({
+		await interaction.createMessage({
 			content:
 				"Press on the check mark below to verify that you want to start and join the game.\n**You have 15 seconds to confirm.**",
-			fetchReply: true,
 		});
 
-		message.react("✅");
+		const msgSent = (await interaction.getOriginalMessage()) as Message;
 
-		const filter = (reaction, user) => {
+		msgSent.addReaction("✅");
+
+		const filter = ({ message, emoji, reactor }: emeraldCollectedReactions) => {
 			console.log("Filter has been run!");
 			return (
-				reaction.emoji.name === "✅" && !user.bot && playerIDs.includes(user.id) //* Only users who have signed up to the game can confirm!
+				emoji.name === "✅" &&
+				!reactor.bot &&
+				playerIDs.includes(reactor.user.id) //* Only users who have signed up to the game can confirm!
 			);
 		};
 
-		const collector = message.createReactionCollector({
+		const collector = new EmeraldReactionCollector({
+			client: bot,
 			filter,
 			time: 15000,
 		});
@@ -235,15 +244,18 @@ export default new BCommand({
 		var usersReacted = [];
 
 		//* COLLECTOR LISTENER EVENTS
-		collector.on("collect", (reaction, user) => {
-			console.log("Reaction collected");
-			usersReacted.push(user.id);
+		collector.on(
+			"collect",
+			({ message, emoji, reactor }: emeraldCollectedReactions) => {
+				console.log("Reaction collected");
+				usersReacted.push(reactor.user.id);
 
-			if (usersReacted.length === playerIDs.length) {
-				collector.stop();
-				makeTeamsDoFinal(players);
+				if (usersReacted.length === playerIDs.length) {
+					collector.stopListening("Met player quota");
+					makeTeamsDoFinal(players);
+				}
 			}
-		});
+		);
 
 		collector.on("dispose", (reaction, user) => {
 			if (usersReacted.includes(user.id)) {
@@ -259,7 +271,7 @@ export default new BCommand({
 					.filter((id) => !usersReacted.includes(id))
 					.map((id) => `<@!${id}>`);
 
-				interaction.channel.send(
+				interaction.channel.createMessage(
 					`The following players haven't accepted the game:\n${notReactedUsers.join(
 						", "
 					)}`

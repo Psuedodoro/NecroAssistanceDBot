@@ -18,10 +18,11 @@ export default new BCommand({
 	],
 
 	run: async ({ interaction }) => {
-		const user =
-			interaction.data.resolved.users.get(
-				interaction.data.options[0].value as string
-			) ?? interaction.user;
+		// TODO: Fix this
+
+		const user: Eris.User = interaction.data.options
+			? interaction.data.resolved.users.values().next().value
+			: interaction.member.user;
 
 		const userExists = await User.findOne({
 			discordID: user.id,
@@ -36,7 +37,7 @@ export default new BCommand({
 		}
 
 		const interactionUser = await User.findOne({
-			discordID: interaction.user.id,
+			discordID: user.id,
 		});
 
 		if (userExists.suspended === true) {

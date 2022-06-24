@@ -1,6 +1,6 @@
-import User from "../../schemas/User";
+import User from "../src/schemas/User";
 import Eris from "eris";
-import { BCommand } from "../../structures/Command";
+import { BCommand } from "../src/structures/Command";
 
 export default new BCommand({
 	name: "leaderboard-ranked",
@@ -8,7 +8,7 @@ export default new BCommand({
 	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 
 	run: async ({ interaction }) => {
-		var users = await User.find({});
+		var users = await User.find();
 		users.sort((a, b) => b.elorating - a.elorating);
 
 		users = users.filter((user) => user.gamehistory.length > 0);

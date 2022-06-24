@@ -1,3 +1,4 @@
+// TODO: Fix Images
 import { BCommand } from "../../structures/Command";
 import makeTeams from "../../functions/teamsGenerator";
 import Eris from "eris";

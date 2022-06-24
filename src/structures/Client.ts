@@ -16,7 +16,9 @@ export class BetterClient extends Client {
 	commands: Map<string, CommandType> = new Map();
 
 	constructor(token: string, botOptions: Eris.ClientOptions, guildID) {
-		super(token, botOptions);
+		const _token = `Bot ${token}`;
+		super(_token, botOptions);
+
 		this.botToken = token;
 		this.guildID = guildID;
 	}

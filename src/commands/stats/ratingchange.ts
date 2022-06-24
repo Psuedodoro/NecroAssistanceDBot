@@ -9,9 +9,7 @@ export default new BCommand({
 	type: CHAT_INPUT,
 
 	run: async ({ interaction }) => {
-		const user = interaction.user;
-
-		const userExists = await User.findOne({ discordID: user.id });
+		const userExists = await User.findOne({ discordID: interaction.member.id });
 
 		if (!userExists) {
 			interaction.createMessage(

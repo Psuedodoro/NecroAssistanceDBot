@@ -1,13 +1,14 @@
+// TODO: Fix logic on command
 import Eris, {
-	ButtonInteraction,
-	GuildMember,
-	MessageActionRow,
-	MessageButton,
-	MessageEmbed,
+	ActionRow,
+	ComponentInteraction,
+	Embed,
+	Member,
 	User,
 	VoiceChannel,
 } from "eris";
 import { bot } from "../..";
+import { EmeraldCollector } from "../../emerald_module/collectors/EmeraldButtonInteractions";
 import { BCommand } from "../../structures/Command";
 
 const defaultPeople = ["500320519455899658", "930744788859359282"];
@@ -27,9 +28,15 @@ export default new BCommand({
 	],
 
 	run: async ({ interaction }) => {
-		const vchannel = interaction.data.resolved.channels.get(
-			interaction.data.options[0].value as string
-		) as VoiceChannel;
+		await interaction.createMessage(
+			"This command is currently broken. A fix will come soon."
+		);
+		return;
+
+		const vchannel = interaction.data.resolved.channels.values().next()
+			.value as VoiceChannel;
+
+		console.log(vchannel.voiceMembers);
 
 		const interactionUserInGuild = interaction.member;
 
@@ -59,84 +66,95 @@ export default new BCommand({
 			defaultPeople.includes(m.id)
 		);
 
+		console.log(defaultUsersInVC);
+
 		// Get person to send the vc join request to
-		var chosenPerson: GuildMember;
+		var chosenPerson: Member;
 		if (defaultUsersInVC.length > 0) {
-			chosenPerson = defaultUsersInVC.random();
+			chosenPerson =
+				defaultUsersInVC[Math.floor(Math.random() * defaultUsersInVC.length)];
 		} else if (defaultUsersInVC.length === 1) {
-			chosenPerson = defaultUsersInVC.first();
+			chosenPerson = defaultUsersInVC[0];
 		} else {
 			chosenPerson = vchannel.voiceMembers.random();
 		}
 
+		//* EMBED STUFF
 		await interaction.createMessage({
 			content: `Sending a VC request to ${chosenPerson.user.username}`,
 			flags: 64,
 		});
 
-		const requestrow = new MessageActionRow().addComponents(
-			new MessageButton()
-				.setCustomId("accepttovc")
-				.setLabel("✅")
-				.setStyle("SUCCESS"),
+		const requestrow: ActionRow = {
+			type: Eris.Constants.ComponentTypes.ACTION_ROW,
+			components: [
+				{
+					type: Eris.Constants.ComponentTypes.BUTTON,
+					label: "✅",
+					style: Eris.Constants.ButtonStyles.SUCCESS,
+					custom_id: "accepttovc",
+				},
+				{
+					type: Eris.Constants.ComponentTypes.BUTTON,
+					label: "❌",
+					style: Eris.Constants.ButtonStyles.DANGER,
+					custom_id: "denytovc",
+				},
+			],
+		};
 
-			new MessageButton()
-				.setCustomId("denytovc")
-				.setLabel("❌")
-				.setStyle("DANGER")
-		);
+		const requestEmbed: Embed = {
+			title: "Accept the VC join request?",
+			description: `${interaction.user.username} wants to join your voice channel, and you have been selected at random to accept the request!\nPlease press the corresponding button to allow the user to either join or leave.`,
+			type: "rich",
+			color: 0xefb859,
+		};
 
-		const requestEmbed = new MessageEmbed()
-			.setTitle("Accept the VC join request?")
-			.setDescription(
-				`${interaction.user.username} wants to join your voice channel, and you have been selected at random to accept the request!\nPlease press the corresponding button to allow the user to either join or leave.`
-			)
-			.setColor(0xefb859);
-
-		const requestMessage = await chosenPerson.user.send({
+		const requestMessage = await (
+			await chosenPerson.user.getDMChannel()
+		).createMessage({
 			embeds: [requestEmbed],
 			components: [requestrow],
 		});
 
-		const filter = (i) => {
-			return i.user.id === chosenPerson.user.id;
+		const filter = (i: ComponentInteraction) => {
+			return i.member.id === chosenPerson.user.id;
 		};
 
-		const collector = requestMessage.createMessageComponentCollector({
-			filter,
-			componentType: "BUTTON",
-			time: 300 * 1000,
+		const collector = new EmeraldCollector({
+			client: bot,
+			filter: filter,
+			time: 1000,
 		});
 
-		var idledDenied = true;
-		collector.on("collect", async (ButtonInteraction) => {
-			idledDenied = false;
-
-			if (ButtonInteraction.customId === "accepttovc") {
-				collector.stop();
+		collector.on("collect", async (i: ComponentInteraction) => {
+			if (i.data.custom_id === "accepttovc") {
+				collector.stopListening("Granted access to VC");
 
 				requestrow.components.forEach((button) => {
-					button.setDisabled(true);
+					button.disabled = true;
 				});
 
 				requestMessage.edit({ components: [requestrow] });
 
-				const updatedEmbed = new MessageEmbed()
-					.setTitle("You got a VC join request!")
-					.setDescription(
-						`${requestEmbed.description}\n\n***You have accepted this request.***`
-					)
-					.setColor(0x00ff48);
+				const updatedEmbed: Embed = {
+					type: "rich",
+					title: "Accepted VC join request",
+					description: `${requestEmbed.description}\n\n***You have accepted this request.***`,
+					color: 0x00ff48,
+				};
 
 				await requestMessage.edit({ embeds: [updatedEmbed] });
 
-				const vcToMoveTo = (await interaction.guild.channels.cache.find(
-					(channel) => channel.id === chosenPerson.voice.channel.id
-				)) as VoiceChannel;
+				const vcToMoveTo = chosenPerson.voiceState.channelID;
 
-				await interactionUserInGuild.voice.setChannel(vcToMoveTo);
+				await interactionUserInGuild.edit({
+					channelID: vcToMoveTo,
+				});
 
-				await interaction.user.send({
+				await (
+					await interaction.user.getDMChannel()
+				).createMessage({
 					embeds: [
 						{
 							title: `You Have Been Accepted Into The Voice Channel!`,
@@ -146,25 +164,27 @@ export default new BCommand({
 					],
 				});
 				return;
-			} else if (ButtonInteraction.customId === "denytovc") {
-				collector.stop();
+			} else if (i.data.custom_id === "denytovc") {
+				collector.stopListening("Denied access to VC");
 
 				requestrow.components.forEach((button) => {
-					button.setDisabled(true);
+					button.disabled = true;
 				});
 
 				requestMessage.edit({ components: [requestrow] });
 
-				const updatedEmbed = new MessageEmbed()
-					.setTitle("You got a VC join request!")
-					.setDescription(
-						`${requestEmbed.description}\n\n***You have denied this request.***`
-					)
-					.setColor(0xfd0303);
+				const updatedEmbed: Embed = {
+					type: "rich",
+					title: "You got a VC join request!",
+					description: `${requestEmbed.description}\n\n***You have denied this request.***`,
+					color: 0xfd0303,
+				};
 
 				await requestMessage.edit({ embeds: [updatedEmbed] });
 
-				await interaction.user.send({
+				await (
+					await interaction.user.getDMChannel()
+				).createMessage({
 					embeds: [
 						{
 							title: `You Have Been Denied Your VC Join Request!`,

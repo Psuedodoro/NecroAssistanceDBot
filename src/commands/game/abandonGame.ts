@@ -2,7 +2,13 @@ import { BCommand } from "../../structures/Command";
 
 import RankedGame from "../../schemas/RankedGame";
 import User from "../../schemas/User";
-import Eris from "eris";
+import Eris, { Message } from "eris";
+import { EmeraldReactionCollector } from "../../emerald_module/collectors/EmeraldReactions";
+import { bot } from "../..";
+import {
+	emeraldCollectedReactions,
+	emeraldDisposedReaction,
+} from "../../emerald_module/Typings";
 
 export default new BCommand({
 	name: "abandon-game",
@@ -65,25 +71,22 @@ export default new BCommand({
 			player.replace(/<@!?(\d+)>/, "$1")
 		);
 
-		const message = await interaction.createMessage({
-			content: `Can the following people please confirm that they want to abandon the game:\n${allGamePlayerMentions.join(
+		const message = (await interaction.channel.createMessage(
+			`Can the following people please confirm that they want to abandon the game:\n${allGamePlayerMentions.join(
 				", "
-			)}\n**You have 15 seconds to confirm abandonment of the game.**`,
-			fetchReply: true,
-		});
+			)}\n**You have 15 seconds to confirm abandonment of the game.**`
+		)) as Message;
 
-		message.react("✅");
+		await message.addReaction("✅");
 
-		const filter = (reaction, user) => {
-			console.log("Filter has been run!");
-			return (
-				reaction.emoji.name === "✅" &&
-				!user.bot &&
-				allGamePlayerIDs.includes(user.id) //* Only users who have signed up to the game can confirm!
-			);
-		};
+		const filter = ({ message, emoji, reactor }: emeraldCollectedReactions) =>
+			message.id === message.id &&
+			emoji.name === "✅" &&
+			!reactor.bot &&
+			allGamePlayerIDs.includes(reactor.id);
 
-		const collector = message.createReactionCollector({
+		const collector = new EmeraldReactionCollector({
+			client: bot,
 			filter,
 			time: 15000,
 		});
@@ -91,27 +94,33 @@ export default new BCommand({
 		var usersReacted = [];
 
 		//* COLLECTOR LISTENER EVENTS
-		collector.on("collect", (reaction, user) => {
-			console.log("Reaction collected");
-			usersReacted.push(user.id);
+		collector.on(
+			"collect",
+			({ message, emoji, reactor }: emeraldCollectedReactions) => {
+				console.log("Reaction collected");
+				usersReacted.push(reactor.id);
 
-			if (usersReacted.length === allGamePlayerIDs.length) {
-				collector.stop();
-				actuallyAbandonMethod();
+				if (usersReacted.length === allGamePlayerIDs.length) {
+					collector.stopListening("User Quota Met");
+					actuallyAbandonMethod();
+				}
 			}
-		});
+		);
 
-		collector.on("dispose", (reaction, user) => {
-			if (usersReacted.includes(user.id)) {
-				usersReacted.splice(usersReacted.indexOf(user.id), 1);
+		collector.on(
+			"deleted",
+			({ message, emoji, userID }: emeraldDisposedReaction) => {
+				if (usersReacted.includes(userID)) {
+					usersReacted.splice(usersReacted.indexOf(userID), 1);
+				}
 			}
-		});
+		);
 
-		collector.on("end", (collected) => {
+		collector.on("end", async (collected: emeraldCollectedReactions[]) => {
 			console.log(usersReacted);
 
 			if (usersReacted.length !== allGamePlayerIDs.length) {
-				interaction.channel.send(
+				await interaction.channel.createMessage(
 					"Not all of the players have confirmed to join the game. Aborting!"
 				);
 				return;
