@@ -1,28 +1,35 @@
-import { client } from "../..";
+import { bot } from "../..";
 import User from "../../schemas/User";
+import Eris from "eris";
 
-import { Command } from "../../structures/Command";
+import { BCommand } from "../../structures/Command";
 
-export default new Command({
+export default new BCommand({
 	name: "stats",
 	description: "Find the stats for any player",
+	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 	options: [
 		{
 			name: "user",
-			description: "The user to query stats for.",
-			type: "USER",
+			description: "The user to find the stats for",
+			type: Eris.Constants.ApplicationCommandOptionTypes.USER,
+			required: false,
 		},
 	],
 
 	run: async ({ interaction }) => {
-		const user = interaction.options.getUser("user") ?? interaction.user;
+		// TODO: Fix this
+
+		const user: Eris.User = interaction.data.options
+			? interaction.data.resolved.users.values().next().value
+			: interaction.member.user;
 
 		const userExists = await User.findOne({
 			discordID: user.id,
 		});
 
 		if (!userExists) {
-			interaction.reply(
+			interaction.createMessage(
 				"User has not registered!\nUse /register now to play ranked games!"
 			);
 
@@ -30,38 +37,33 @@ export default new Command({
 		}
 
 		const interactionUser = await User.findOne({
-			discordID: interaction.user.id,
+			discordID: user.id,
 		});
 
 		if (userExists.suspended === true) {
-			interaction.reply(
+			interaction.createMessage(
 				`${user.username} has been suspended from Ranked Games and is currently voided from the leaderboard and ranked play.\nSuspension reason: ${userExists.suspendedReason}`
 			);
 			return;
 		}
 
 		if (interactionUser.suspended === true) {
-			const interactionUsername = client.users.cache.find(
-				(user) => user.id === interactionUser.discordID
-			);
+			const interactionUsername = bot.users.get(interactionUser.discordID);
 
-			interaction.reply({
+			interaction.createMessage({
 				content: `${interactionUsername} has been suspended from Ranked Games and cannot use this command.\nSuspension reason: ${interactionUser.suspendedReason}`,
-				ephemeral: true,
+				flags: 64,
 			});
 			return;
 		}
 
 		if (!userExists) {
-			interaction.reply(
+			interaction.createMessage(
 				"You are not registered! Please use the **/register** slash command to get started!"
 			);
 			return;
 		} else {
-			const userPfp = user.displayAvatarURL({
-				format: "png",
-				size: 1024,
-			});
+			const userPfp = user.staticAvatarURL;
 
 			let past10games;
 			var formattedHistory: string[] | string = [];
@@ -101,7 +103,7 @@ export default new Command({
 				rank = "Unranked";
 			}
 
-			interaction.reply({
+			interaction.createMessage({
 				embeds: [
 					{
 						title: `${user.username} [${lbpos}]`,

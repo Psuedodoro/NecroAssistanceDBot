@@ -1,140 +1,136 @@
-import {
-	ButtonInteraction,
-	GuildMember,
-	MessageActionRow,
-	MessageButton,
-	MessageEmbed,
-	User,
-	VoiceChannel,
-} from "discord.js";
-import { Command } from "../../structures/Command";
+// TODO: Fix logic on command
+import Eris, { ActionRow, ComponentInteraction, Embed, Member, User, VoiceChannel } from "eris";
+import { bot } from "../..";
+import { EmeraldCollector } from "../../emerald_module/collectors/EmeraldButtonInteractions";
+import { BCommand } from "../../structures/Command";
 
 const defaultPeople = ["500320519455899658", "930744788859359282"];
 
-export default new Command({
+export default new BCommand({
 	name: "request-vc",
 	description: "Request a member in a voice channel to join",
+	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 	options: [
 		{
 			name: "vc",
 			description: "voice channel to join",
-			type: "CHANNEL",
-			channelTypes: ["GUILD_VOICE"],
+			type: Eris.Constants.ApplicationCommandOptionTypes.CHANNEL,
+			channel_types: [Eris.Constants.ChannelTypes.GUILD_VOICE],
 			required: true,
 		},
 	],
 
 	run: async ({ interaction }) => {
-		const vchannel = interaction.options.getChannel("vc") as VoiceChannel;
+		const vchannel = bot.getChannel(interaction.data.options[0].value as string) as VoiceChannel;
 
-		const interactionUserInGuild = interaction.guild.members.cache.find(
-			(member) => member.id === interaction.user.id
-		);
+		const interactionUserInGuild = interaction.member;
 
-		if (!interactionUserInGuild.voice.channel) {
-			interaction.reply({
+		if (!interactionUserInGuild.voiceState.channelID) {
+			interaction.createMessage({
 				content: "You need to be in a voice channel to request to join a VC!",
-				ephemeral: true,
+				flags: 64,
 			});
 			return;
 		}
 
 		if (!vchannel) {
-			return interaction.reply({
+			return interaction.createMessage({
 				content: "Invalid voice channel",
-				ephemeral: true,
+				flags: 64,
 			});
 		}
 
-		if (vchannel.members.size === 0) {
-			return interaction.reply({
-				content: "No members in this channel",
-				ephemeral: true,
+		if (vchannel.voiceMembers.size === 0) {
+			return interaction.createMessage({
+				content: "No members in this channel to send a request to!",
+				flags: 64,
 			});
 		}
 
-		const defaultUsersInVC = vchannel.members.filter((m) =>
-			defaultPeople.includes(m.id)
-		);
+		const defaultUsersInVC = vchannel.voiceMembers.filter((m) => defaultPeople.includes(m.id));
 
 		// Get person to send the vc join request to
-		var chosenPerson: GuildMember;
-		if (defaultUsersInVC.size > 0) {
-			chosenPerson = defaultUsersInVC.random();
-		} else if (defaultUsersInVC.size === 1) {
-			chosenPerson = defaultUsersInVC.first();
+		var chosenPerson: Member;
+		if (defaultUsersInVC.length > 0) {
+			chosenPerson = defaultUsersInVC[Math.floor(Math.random() * defaultUsersInVC.length)];
+		} else if (defaultUsersInVC.length === 1) {
+			chosenPerson = defaultUsersInVC[0];
 		} else {
-			chosenPerson = vchannel.members.random();
+			chosenPerson = vchannel.voiceMembers.random();
 		}
 
-		await interaction.reply({
+		//* EMBED STUFF
+		await interaction.createMessage({
 			content: `Sending a VC request to ${chosenPerson.user.username}`,
-			ephemeral: true,
+			flags: 64,
 		});
 
-		const requestrow = new MessageActionRow().addComponents(
-			new MessageButton()
-				.setCustomId("accepttovc")
-				.setLabel("✅")
-				.setStyle("SUCCESS"),
+		const requestrow: ActionRow = {
+			type: Eris.Constants.ComponentTypes.ACTION_ROW,
+			components: [
+				{
+					type: Eris.Constants.ComponentTypes.BUTTON,
+					label: "✅",
+					style: Eris.Constants.ButtonStyles.SUCCESS,
+					custom_id: "accepttovc",
+				},
+				{
+					type: Eris.Constants.ComponentTypes.BUTTON,
+					label: "❌",
+					style: Eris.Constants.ButtonStyles.DANGER,
+					custom_id: "denytovc",
+				},
+			],
+		};
 
-			new MessageButton()
-				.setCustomId("denytovc")
-				.setLabel("❌")
-				.setStyle("DANGER")
-		);
+		const requestEmbed: Embed = {
+			title: "Accept the VC join request?",
+			description: `${interaction.member.user.username} wants to join your voice channel, and you have been selected at random to accept the request!\nPlease press the corresponding button to allow the user to either join or leave.`,
+			type: "rich",
+			color: 0xefb859,
+		};
 
-		const requestEmbed = new MessageEmbed()
-			.setTitle("Accept the VC join request?")
-			.setDescription(
-				`${interaction.user.username} wants to join your voice channel, and you have been selected at random to accept the request!\nPlease press the corresponding button to allow the user to either join or leave.`
-			)
-			.setColor(0xefb859);
-
-		const requestMessage = await chosenPerson.user.send({
+		const chosenPersonDMChannel = await chosenPerson.user.getDMChannel();
+		const requestMessage = await chosenPersonDMChannel.createMessage({
 			embeds: [requestEmbed],
 			components: [requestrow],
 		});
 
-		const filter = (i) => {
-			return i.user.id === chosenPerson.user.id;
-		};
+		const filter = (i: ComponentInteraction) =>
+			i.user.id === chosenPerson.user.id && i.channel.id === chosenPersonDMChannel.id && i.message.id === requestMessage.id;
 
-		const collector = requestMessage.createMessageComponentCollector({
-			filter,
-			componentType: "BUTTON",
-			time: 300 * 1000,
+		const collector = new EmeraldCollector({
+			client: bot,
+			filter: filter,
+			time: 5 * 60 * 1000,
 		});
 
-		var idledDenied = true;
-		collector.on("collect", async (ButtonInteraction) => {
-			idledDenied = false;
-
-			if (ButtonInteraction.customId === "accepttovc") {
-				collector.stop();
+		collector.on("collect", async (i: ComponentInteraction) => {
+			if (i.data.custom_id === "accepttovc") {
+				collector.stopListening("Granted access to VC");
 
 				requestrow.components.forEach((button) => {
-					button.setDisabled(true);
+					button.disabled = true;
 				});
 
 				requestMessage.edit({ components: [requestrow] });
 
-				const updatedEmbed = new MessageEmbed()
-					.setTitle("You got a VC join request!")
-					.setDescription(
-						`${requestEmbed.description}\n\n***You have accepted this request.***`
-					)
-					.setColor(0x00ff48);
+				const updatedEmbed: Embed = {
+					type: "rich",
+					title: "Accepted VC join request",
+					description: `${requestEmbed.description}\n\n***You have accepted this request.***`,
+					color: 0x00ff48,
+				};
 
 				await requestMessage.edit({ embeds: [updatedEmbed] });
 
-				const vcToMoveTo = (await interaction.guild.channels.cache.find(
-					(channel) => channel.id === chosenPerson.voice.channel.id
-				)) as VoiceChannel;
+				const vcToMoveTo = chosenPerson.voiceState.channelID;
 
-				await interactionUserInGuild.voice.setChannel(vcToMoveTo);
+				await interactionUserInGuild.edit({
+					channelID: vcToMoveTo,
+				});
 
-				await interaction.user.send({
+				await chosenPersonDMChannel.createMessage({
 					embeds: [
 						{
 							title: `You Have Been Accepted Into The Voice Channel!`,
@@ -144,25 +140,25 @@ export default new Command({
 					],
 				});
 				return;
-			} else if (ButtonInteraction.customId === "denytovc") {
-				collector.stop();
+			} else if (i.data.custom_id === "denytovc") {
+				collector.stopListening("Denied access to VC");
 
 				requestrow.components.forEach((button) => {
-					button.setDisabled(true);
+					button.disabled = true;
 				});
 
 				requestMessage.edit({ components: [requestrow] });
 
-				const updatedEmbed = new MessageEmbed()
-					.setTitle("You got a VC join request!")
-					.setDescription(
-						`${requestEmbed.description}\n\n***You have denied this request.***`
-					)
-					.setColor(0xfd0303);
+				const updatedEmbed: Embed = {
+					type: "rich",
+					title: "You got a VC join request!",
+					description: `${requestEmbed.description}\n\n***You have denied this request.***`,
+					color: 0xfd0303,
+				};
 
 				await requestMessage.edit({ embeds: [updatedEmbed] });
 
-				await interaction.user.send({
+				await chosenPersonDMChannel.createMessage({
 					embeds: [
 						{
 							title: `You Have Been Denied Your VC Join Request!`,
@@ -173,6 +169,10 @@ export default new Command({
 				});
 				return;
 			}
+		});
+
+		collector.on("end", async () => {
+			console.log("The VC Request Ended!");
 		});
 	},
 });

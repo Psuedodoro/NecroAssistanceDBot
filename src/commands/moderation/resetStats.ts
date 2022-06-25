@@ -1,19 +1,22 @@
 import User from "../../schemas/User";
-import { Command } from "../../structures/Command";
+import { BCommand } from "../../structures/Command";
 import PastUserStats, { IPastUser } from "../../schemas/PastUserStats";
+import Eris from "eris";
 
-export default new Command({
+export default new BCommand({
 	name: "reset-stats",
 	description: "Reset everyone's stats!",
+	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 
 	run: async ({ interaction }) => {
-		if (!(interaction.user.id === "930744788859359282")) {
-			interaction.reply("You do not have permission to use this command!");
+		if (!(interaction.member.user.id === "930744788859359282")) {
+			interaction.createMessage("You do not have permission to use this command!");
+			return;
 		}
 
-		interaction.reply({
+		interaction.createMessage({
 			content: "Resetting everyone's stats...",
-			ephemeral: true,
+			flags: 64,
 		});
 
 		var users = await User.find({});
@@ -36,7 +39,7 @@ export default new Command({
 			position.push(`#${i + 1}`);
 		}
 
-		interaction.channel.send({
+		interaction.channel.createMessage({
 			embeds: [
 				{
 					title: `Previous Ranked Game Leaderboard`,
@@ -97,7 +100,7 @@ export default new Command({
 			await user.save();
 		});
 
-		interaction.user.send({
+		(await interaction.user.getDMChannel()).createMessage({
 			content: "Reset operation complete.",
 		});
 	},

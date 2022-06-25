@@ -1,10 +1,12 @@
-import { Command } from "../../structures/Command";
+import { BCommand } from "../../structures/Command";
 import User from "../../schemas/User";
 import eloToRank from "../../functions/eloToRank";
+import Eris from "eris";
 
-export default new Command({
+export default new BCommand({
 	name: "debug-lb",
 	description: "Rolls back everyone's stats to the game before last.",
+	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 
 	run: async ({ interaction }) => {
 		var users = await User.find({});
@@ -20,6 +22,6 @@ export default new Command({
 			user.save();
 		}
 
-		interaction.reply("LB Positions have been updated.");
+		interaction.createMessage("LB Positions have been updated.");
 	},
 });

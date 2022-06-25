@@ -1,43 +1,43 @@
-import { Command } from "../../structures/Command";
+import { BCommand } from "../../structures/Command";
 
 import RankedGame from "../../schemas/RankedGame";
 import User from "../../schemas/User";
+import Eris, { Message } from "eris";
+import { EmeraldReactionCollector } from "../../emerald_module/collectors/EmeraldReactions";
+import { bot } from "../..";
+import { emeraldCollectedReactions, emeraldDisposedReaction } from "../../emerald_module/Typings";
 
-export default new Command({
+export default new BCommand({
 	name: "abandon-game",
 	description: "Abandon a game due to regulations",
+	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 	options: [
 		{
 			name: "game-reference",
 			description: "The ID of the game to abandon/cancel",
-			type: "STRING",
+			type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
 			required: true,
 		},
 	],
 
 	run: async ({ interaction }) => {
 		//* Message conf type guard
-		if (!interaction.inCachedGuild()) return;
-
-		const gameRefOption = interaction.options.getString("game-reference");
+		const gameRefOption = interaction.data.options[0].value as string;
 
 		const gameExists = await RankedGame.findOne({ gameRef: gameRefOption });
 
 		if (!gameExists) {
-			interaction.reply("That game doesn't exist! Please try again.");
+			interaction.createMessage("That game doesn't exist! Please try again.");
 			return;
 		}
 
 		if (gameRefOption.length !== 5) {
-			interaction.reply("Please enter a valid game ID (5 chars long)!");
+			interaction.createMessage("Please enter a valid game ID (5 chars long)!");
 			return;
 		}
 
 		const actuallyAbandonMethod = async () => {
-			const allPlayers: string[] = [
-				...gameExists.teamA,
-				...gameExists.teamB,
-			].map((user) => user.replace(/[<>!@]/g, ""));
+			const allPlayers: string[] = [...gameExists.teamA, ...gameExists.teamB].map((user) => user.replace(/[<>!@]/g, ""));
 
 			// Get all players from the DB
 			const usersFromDB = await User.find({
@@ -53,37 +53,29 @@ export default new Command({
 
 			gameExists.remove();
 
-			interaction.followUp(
-				`The game on ${gameExists.gameMap} with the ID ${gameExists.gameRef} has been abandoned!`
-			);
+			interaction.createFollowup(`The game on ${gameExists.gameMap} with the ID ${gameExists.gameRef} has been abandoned!`);
 		};
 
 		//* --- Abandon Conformation Message Stuff --- *//
 		const allGamePlayerMentions = [...gameExists.teamA, ...gameExists.teamB];
 
-		const allGamePlayerIDs = allGamePlayerMentions.map((player) =>
-			player.replace(/<@!?(\d+)>/, "$1")
+		const allGamePlayerIDs = allGamePlayerMentions.map((player) => player.replace(/<@!?(\d+)>/, "$1"));
+
+		await interaction.createMessage(
+			`Can the following people please confirm that they want to abandon the game:\n${allGamePlayerMentions.join(
+				", "
+			)}\n**You have 15 seconds to confirm abandonment of the game.**`
 		);
 
-		const message = await interaction.reply({
-			content: `Can the following people please confirm that they want to abandon the game:\n${allGamePlayerMentions.join(
-				", "
-			)}\n**You have 15 seconds to confirm abandonment of the game.**`,
-			fetchReply: true,
-		});
+		const message = (await interaction.getOriginalMessage()) as Message;
 
-		message.react("✅");
+		await message.addReaction("✅");
 
-		const filter = (reaction, user) => {
-			console.log("Filter has been run!");
-			return (
-				reaction.emoji.name === "✅" &&
-				!user.bot &&
-				allGamePlayerIDs.includes(user.id) //* Only users who have signed up to the game can confirm!
-			);
-		};
+		const filter = ({ message, emoji, reactor }: emeraldCollectedReactions) =>
+			message.id === message.id && emoji.name === "✅" && !reactor.bot && allGamePlayerIDs.includes(reactor.id);
 
-		const collector = message.createReactionCollector({
+		const collector = new EmeraldReactionCollector({
+			client: bot,
 			filter,
 			time: 15000,
 		});
@@ -91,29 +83,25 @@ export default new Command({
 		var usersReacted = [];
 
 		//* COLLECTOR LISTENER EVENTS
-		collector.on("collect", (reaction, user) => {
+		collector.on("collect", ({ message, emoji, reactor }: emeraldCollectedReactions) => {
 			console.log("Reaction collected");
-			usersReacted.push(user.id);
+			usersReacted.push(reactor.id);
 
 			if (usersReacted.length === allGamePlayerIDs.length) {
-				collector.stop();
+				collector.stopListening("User Quota Met");
 				actuallyAbandonMethod();
 			}
 		});
 
-		collector.on("dispose", (reaction, user) => {
-			if (usersReacted.includes(user.id)) {
-				usersReacted.splice(usersReacted.indexOf(user.id), 1);
+		collector.on("deleted", ({ message, emoji, userID }: emeraldDisposedReaction) => {
+			if (usersReacted.includes(userID)) {
+				usersReacted.splice(usersReacted.indexOf(userID), 1);
 			}
 		});
 
-		collector.on("end", (collected) => {
-			console.log(usersReacted);
-
+		collector.on("end", async (collected: emeraldCollectedReactions[]) => {
 			if (usersReacted.length !== allGamePlayerIDs.length) {
-				interaction.channel.send(
-					"Not all of the players have confirmed to join the game. Aborting!"
-				);
+				await interaction.channel.createMessage("Not all of the players have confirmed to join the game. Aborting!");
 				return;
 			}
 		});

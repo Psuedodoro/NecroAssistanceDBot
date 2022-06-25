@@ -20,6 +20,8 @@ export interface IPastUser {
 	suspensionUnit: string;
 	agents: IAgentReservation;
 	rank: string;
+	cooldown1v1: number;
+	agentChangeCooldown: number;
 }
 
 const pastUserSchema = new mongoose.Schema<IPastUser>({
@@ -40,6 +42,8 @@ const pastUserSchema = new mongoose.Schema<IPastUser>({
 		backup: String,
 	},
 	rank: String,
+	cooldown1v1: Number,
+	agentChangeCooldown: Number,
 });
 
 export default mongoose.model<IPastUser>("PastUser", pastUserSchema);

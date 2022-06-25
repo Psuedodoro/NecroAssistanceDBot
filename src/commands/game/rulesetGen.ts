@@ -1,11 +1,7 @@
-import {
-	Message,
-	MessageActionRow,
-	MessageButton,
-	MessageEmbed,
-} from "discord.js";
-import paginationEmbed from "discord.js-pagination";
-import { Command } from "../../structures/Command";
+import Eris, { ActionRow, ComponentInteraction, Embed, Message } from "eris";
+import { bot } from "../..";
+import { EmeraldCollector } from "../../emerald_module/collectors/EmeraldButtonInteractions";
+import { BCommand } from "../../structures/Command";
 
 //* Data for the random generation
 const plantOptions = [
@@ -16,38 +12,28 @@ const plantOptions = [
 	"Planting is Required :bomb:",
 ];
 
-const havenSites = [
-	"A Site :regional_indicator_a:",
-	"B Site :b:",
-	"C Site :regional_indicator_c:",
-	"Mid :dart:",
-];
+const havenSites = ["A Site :regional_indicator_a:", "B Site :b:", "C Site :regional_indicator_c:", "Mid :dart:"];
 
 const standardSites = ["A Site :regional_indicator_a:", "B Site :b:"];
 
-const abilityChoice = [
-	"No Damaging Abilities :drop_of_blood:",
-	"All Abilities :white_check_mark:",
-	"No Abilities :no_entry:",
-];
+const abilityChoice = ["No Damaging Abilities :drop_of_blood:", "All Abilities :white_check_mark:", "No Abilities :no_entry:"];
 
-export default new Command({
+export default new BCommand({
 	name: "generate-rules",
 	description: "Generate a ruleset for the game's rounds!",
+	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 	options: [
 		{
 			name: "is-haven",
 			description: "Is this a game on the haven map with 3 sites?",
-			type: "BOOLEAN",
+			type: Eris.Constants.ApplicationCommandOptionTypes.BOOLEAN,
 			required: true,
 		},
 	],
 
 	run: async ({ interaction }) => {
-		if (!interaction.inCachedGuild()) return;
-
 		//* Randomised data for the pagination
-		const isHaven = interaction.options.getBoolean("is-haven");
+		const isHaven = interaction.data.options[0].value as boolean;
 		const siteSelections = isHaven ? havenSites : standardSites;
 
 		const genPlantOption = () => {
@@ -71,58 +57,80 @@ export default new Command({
 				plantingspec = plantOptions[0];
 			}
 
-			return new MessageEmbed()
-				.setTitle("A Ruleset Has Been Generated!")
-				.setDescription("Here are the rules for this round:")
-				.setColor(0x00bbff)
-				.addField("**Selected Site:**", sitespec)
-				.addField("**Ability Allowances:**", abilityspec)
-				.addField("**Plant Options:**", plantingspec);
-			// TODO: Add page identifier.
-			/* .setFooter({
-					text: `Page ${pageno} of rules generated.`,
-				}); */
+			const builtEmbed: Embed = {
+				type: "rich",
+				title: "A Ruleset Has Been Generated!",
+				description: "Here are the rules for this round:",
+				color: 0x00bbff,
+				fields: [
+					{
+						name: "**Selected Site:**",
+						value: sitespec,
+					},
+					{
+						name: "**Ability Allowances:**",
+						value: abilityspec,
+					},
+					{
+						name: "**Plant Options:**",
+						value: plantingspec,
+					},
+				],
+			};
+
+			return builtEmbed;
 		};
 
-		const pages: MessageEmbed[] = [];
+		const pages: Embed[] = [];
 
 		pages.push(genRulesEmbed());
 
 		//* Pagination stuff
-		const buttonRow = new MessageActionRow().addComponents(
-			new MessageButton()
-				.setLabel("◀")
-				.setStyle("PRIMARY")
-				.setCustomId("leftwardsPage"),
+		const buttonRow: ActionRow = {
+			type: Eris.Constants.ComponentTypes.ACTION_ROW,
+			components: [
+				{
+					type: Eris.Constants.ComponentTypes.BUTTON,
+					label: "◀",
+					style: Eris.Constants.ButtonStyles.PRIMARY,
+					custom_id: "leftwardsPage",
+				},
+				{
+					type: Eris.Constants.ComponentTypes.BUTTON,
+					label: "▶",
+					style: Eris.Constants.ButtonStyles.PRIMARY,
+					custom_id: "rightwardsPage",
+				},
+			],
+		};
 
-			new MessageButton()
-				.setLabel("▶")
-				.setCustomId("rightwardsPage")
-				.setStyle("PRIMARY")
-		);
+		const disabledrow = { ...buttonRow };
+		disabledrow.components[0].disabled = true;
+		disabledrow.components[1].disabled = true;
 
 		let page = 0;
 
-		const message = (await interaction.reply({
+		await interaction.createMessage({
 			embeds: [pages[page]],
 			components: [buttonRow],
-			fetchReply: true,
-		})) as Message;
+		});
 
-		const filter = (i) => {
-			return i.user.id === interaction.user.id;
+		const msg = await interaction.getOriginalMessage();
+
+		const filter = (i: ComponentInteraction) => {
+			return i.member.id === interaction.member.id;
 		};
 
-		const collector = message.createMessageComponentCollector({
+		const collector = new EmeraldCollector({
+			client: bot,
 			filter,
-			componentType: "BUTTON",
 			time: 300 * 1000,
 		});
 
-		collector.on("collect", (buttonInteraction) => {
+		collector.on("collect", async (i: ComponentInteraction) => {
 			collector.resetTimer();
 
-			switch (buttonInteraction.customId) {
+			switch (i.data.custom_id) {
 				case "leftwardsPage":
 					page = page > 0 ? --page : pages.length - 1;
 					break;
@@ -136,16 +144,14 @@ export default new Command({
 					break;
 			}
 
-			message.edit({
+			await msg.edit({
 				embeds: [pages[page]],
 				components: [buttonRow],
 			});
 		});
 
 		collector.on("end", () => {
-			console.log("Collector ended");
-
-			collector.stop();
+			msg.edit({ components: [disabledrow] });
 		});
 	},
 });

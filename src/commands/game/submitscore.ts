@@ -1,4 +1,4 @@
-import { Command } from "../../structures/Command";
+import { BCommand } from "../../structures/Command";
 
 import EloRank from "elo-rank";
 const elo = new EloRank(25);
@@ -6,21 +6,23 @@ const elo = new EloRank(25);
 import RankedGame from "../../schemas/RankedGame";
 import User from "../../schemas/User";
 import eloToRank from "../../functions/eloToRank";
+import Eris from "eris";
 
-export default new Command({
+export default new BCommand({
 	name: "submit-score",
 	description: "Submit the score for a ranked game!",
+	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 	options: [
 		{
 			name: "game-id",
 			description: "The game reference for the ranked game",
-			type: "STRING",
+			type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
 			required: true,
 		},
 		{
 			name: "winning-team",
 			description: "Which team won?",
-			type: "STRING",
+			type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
 			required: true,
 			choices: [
 				{
@@ -44,11 +46,15 @@ export default new Command({
 			7 winstreak: 8 
 		*/
 
-		const gameID = interaction.options.getString("game-id");
-		const winningTeam = interaction.options.getString("winning-team");
+		const gameID = interaction.data.options.find((o) => o.name === "game-id")
+			.value as string;
+
+		const winningTeam = interaction.data.options.find(
+			(o) => o.name === "winning-team"
+		).value as string;
 
 		if (gameID.length !== 5) {
-			interaction.reply("The game ID must be 5 characters long!");
+			interaction.createMessage("The game ID must be 5 characters long!");
 			return;
 		}
 
@@ -57,12 +63,12 @@ export default new Command({
 		});
 
 		if (!selectedGame) {
-			interaction.reply("There is no such game with that ID.");
+			interaction.createMessage("There is no such game with that ID.");
 			return;
 		}
 
 		if (selectedGame.scoreSubmitted) {
-			interaction.reply(
+			interaction.createMessage(
 				"This game has already been submitted and cannot be re-submitted/altered without appropriate permissions."
 			);
 			return;
@@ -183,7 +189,7 @@ export default new Command({
 			await userB.save();
 		}
 
-		interaction.reply(
+		interaction.createMessage(
 			"The scores have successfully been submitted, and ELO etc has been affected accordingly.\nWell done and good luck for next time!"
 		);
 

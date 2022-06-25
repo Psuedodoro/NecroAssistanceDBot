@@ -1,5 +1,4 @@
 import mapsAndInfo from "../data/mapsandinfo.json";
-
 import allAgentClasses from "../data/agentClassesToBan.json";
 
 export default function makeTeams(players: string[], doBanAgents: boolean) {

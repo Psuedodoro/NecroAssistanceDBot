@@ -1,25 +1,28 @@
-import { Command } from "../../structures/Command";
+// TODO: Fix Images
+import { BCommand } from "../../structures/Command";
 import makeTeams from "../../functions/teamsGenerator";
+import Eris from "eris";
 
-export default new Command({
+export default new BCommand({
 	name: "generate-game",
 	description: "Generate the game!",
+	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 	options: [
 		{
 			name: "players",
 			description: "Enter all the players that you want to add to the game.",
-			type: "STRING",
+			type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
 			required: true,
 		},
 	],
 
 	run: async ({ interaction }) => {
-		const results = interaction.options
-			.getString("players")
-			.match(/<@!?(\d+)>/g);
+		const results = (interaction.data.options[0].value as string).match(
+			/<@!?(\d+)>/g
+		);
 
 		if (!results || results.length < 2) {
-			interaction.reply("You need to enter at least 2 players!");
+			interaction.createMessage("You need to enter at least 2 players!");
 			return;
 		}
 
@@ -28,10 +31,9 @@ export default new Command({
 			false
 		);
 
-		interaction.reply({
+		interaction.createMessage({
 			embeds: [
 				{
-					type: "rich",
 					title: `A Game Has Been Generated On ${gameMap}!`,
 					description: `Good luck, and may the best team win!`,
 					color: 0x09ff00,
@@ -49,8 +51,6 @@ export default new Command({
 					],
 					image: {
 						url: `${selectedmapimage}`,
-						height: 960,
-						width: 540,
 					},
 				},
 			],
