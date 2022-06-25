@@ -1,15 +1,22 @@
-import User from "../src/schemas/User";
+import PastUserStats from "../../schemas/PastUserStats";
+import { BCommand } from "../../structures/Command";
 import Eris from "eris";
-import { BCommand } from "../src/structures/Command";
 
 export default new BCommand({
-	name: "leaderboard-ranked",
+	name: "pastlb",
 	description: "Get all the players from best elo to worst from Ranked Games",
 	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 
 	run: async ({ interaction }) => {
-		var users = await User.find();
-		users.sort((a, b) => b.elorating - a.elorating);
+		if (!(interaction.member.user.id === "930744788859359282")) {
+			interaction.createMessage("You do not have permission to use this command!");
+		}
+
+		var users = await PastUserStats.find({})
+			.where("suspended")
+			.ne(true)
+			.select("discordID elorating lbpos gamehistory")
+			.sort("-elorating");
 
 		users = users.filter((user) => user.gamehistory.length > 0);
 
@@ -31,8 +38,10 @@ export default new BCommand({
 		interaction.createMessage({
 			embeds: [
 				{
-					title: `Ranked Game Leaderboard`,
-					description: `Team Necro's current leaderboard standings for private ranked games!`,
+					title: `Previous Ranked Game Leaderboard`,
+					description: `Team Necro's leaderboard private ranked standings up until ${
+						new Date().toLocaleString().split(",")[0]
+					}!`,
 					color: 0xefb859,
 					fields: [
 						{

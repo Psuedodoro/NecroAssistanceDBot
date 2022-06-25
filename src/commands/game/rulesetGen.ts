@@ -12,20 +12,11 @@ const plantOptions = [
 	"Planting is Required :bomb:",
 ];
 
-const havenSites = [
-	"A Site :regional_indicator_a:",
-	"B Site :b:",
-	"C Site :regional_indicator_c:",
-	"Mid :dart:",
-];
+const havenSites = ["A Site :regional_indicator_a:", "B Site :b:", "C Site :regional_indicator_c:", "Mid :dart:"];
 
 const standardSites = ["A Site :regional_indicator_a:", "B Site :b:"];
 
-const abilityChoice = [
-	"No Damaging Abilities :drop_of_blood:",
-	"All Abilities :white_check_mark:",
-	"No Abilities :no_entry:",
-];
+const abilityChoice = ["No Damaging Abilities :drop_of_blood:", "All Abilities :white_check_mark:", "No Abilities :no_entry:"];
 
 export default new BCommand({
 	name: "generate-rules",
@@ -113,6 +104,10 @@ export default new BCommand({
 			],
 		};
 
+		const disabledrow = { ...buttonRow };
+		disabledrow.components[0].disabled = true;
+		disabledrow.components[1].disabled = true;
+
 		let page = 0;
 
 		await interaction.createMessage({
@@ -156,7 +151,7 @@ export default new BCommand({
 		});
 
 		collector.on("end", () => {
-			console.log("Rule-set Collector Ended");
+			msg.edit({ components: [disabledrow] });
 		});
 	},
 });

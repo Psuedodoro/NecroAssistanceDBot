@@ -5,10 +5,7 @@ import User from "../../schemas/User";
 import Eris, { Message } from "eris";
 import { EmeraldReactionCollector } from "../../emerald_module/collectors/EmeraldReactions";
 import { bot } from "../..";
-import {
-	emeraldCollectedReactions,
-	emeraldDisposedReaction,
-} from "../../emerald_module/Typings";
+import { emeraldCollectedReactions, emeraldDisposedReaction } from "../../emerald_module/Typings";
 
 export default new BCommand({
 	name: "abandon-game",
@@ -40,10 +37,7 @@ export default new BCommand({
 		}
 
 		const actuallyAbandonMethod = async () => {
-			const allPlayers: string[] = [
-				...gameExists.teamA,
-				...gameExists.teamB,
-			].map((user) => user.replace(/[<>!@]/g, ""));
+			const allPlayers: string[] = [...gameExists.teamA, ...gameExists.teamB].map((user) => user.replace(/[<>!@]/g, ""));
 
 			// Get all players from the DB
 			const usersFromDB = await User.find({
@@ -59,31 +53,26 @@ export default new BCommand({
 
 			gameExists.remove();
 
-			interaction.createFollowup(
-				`The game on ${gameExists.gameMap} with the ID ${gameExists.gameRef} has been abandoned!`
-			);
+			interaction.createFollowup(`The game on ${gameExists.gameMap} with the ID ${gameExists.gameRef} has been abandoned!`);
 		};
 
 		//* --- Abandon Conformation Message Stuff --- *//
 		const allGamePlayerMentions = [...gameExists.teamA, ...gameExists.teamB];
 
-		const allGamePlayerIDs = allGamePlayerMentions.map((player) =>
-			player.replace(/<@!?(\d+)>/, "$1")
-		);
+		const allGamePlayerIDs = allGamePlayerMentions.map((player) => player.replace(/<@!?(\d+)>/, "$1"));
 
-		const message = (await interaction.channel.createMessage(
+		await interaction.createMessage(
 			`Can the following people please confirm that they want to abandon the game:\n${allGamePlayerMentions.join(
 				", "
 			)}\n**You have 15 seconds to confirm abandonment of the game.**`
-		)) as Message;
+		);
+
+		const message = (await interaction.getOriginalMessage()) as Message;
 
 		await message.addReaction("✅");
 
 		const filter = ({ message, emoji, reactor }: emeraldCollectedReactions) =>
-			message.id === message.id &&
-			emoji.name === "✅" &&
-			!reactor.bot &&
-			allGamePlayerIDs.includes(reactor.id);
+			message.id === message.id && emoji.name === "✅" && !reactor.bot && allGamePlayerIDs.includes(reactor.id);
 
 		const collector = new EmeraldReactionCollector({
 			client: bot,
@@ -94,35 +83,25 @@ export default new BCommand({
 		var usersReacted = [];
 
 		//* COLLECTOR LISTENER EVENTS
-		collector.on(
-			"collect",
-			({ message, emoji, reactor }: emeraldCollectedReactions) => {
-				console.log("Reaction collected");
-				usersReacted.push(reactor.id);
+		collector.on("collect", ({ message, emoji, reactor }: emeraldCollectedReactions) => {
+			console.log("Reaction collected");
+			usersReacted.push(reactor.id);
 
-				if (usersReacted.length === allGamePlayerIDs.length) {
-					collector.stopListening("User Quota Met");
-					actuallyAbandonMethod();
-				}
+			if (usersReacted.length === allGamePlayerIDs.length) {
+				collector.stopListening("User Quota Met");
+				actuallyAbandonMethod();
 			}
-		);
+		});
 
-		collector.on(
-			"deleted",
-			({ message, emoji, userID }: emeraldDisposedReaction) => {
-				if (usersReacted.includes(userID)) {
-					usersReacted.splice(usersReacted.indexOf(userID), 1);
-				}
+		collector.on("deleted", ({ message, emoji, userID }: emeraldDisposedReaction) => {
+			if (usersReacted.includes(userID)) {
+				usersReacted.splice(usersReacted.indexOf(userID), 1);
 			}
-		);
+		});
 
 		collector.on("end", async (collected: emeraldCollectedReactions[]) => {
-			console.log(usersReacted);
-
 			if (usersReacted.length !== allGamePlayerIDs.length) {
-				await interaction.channel.createMessage(
-					"Not all of the players have confirmed to join the game. Aborting!"
-				);
+				await interaction.channel.createMessage("Not all of the players have confirmed to join the game. Aborting!");
 				return;
 			}
 		});

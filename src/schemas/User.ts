@@ -21,6 +21,7 @@ export interface IUser {
 	agents: IAgentReservation;
 	rank: string;
 	cooldown1v1: number;
+	agentChangeCooldown: number;
 }
 
 const userSchema = new mongoose.Schema<IUser>({
@@ -42,6 +43,7 @@ const userSchema = new mongoose.Schema<IUser>({
 	},
 	rank: String,
 	cooldown1v1: Number,
+	agentChangeCooldown: Number,
 });
 
 export default mongoose.model<IUser>("User", userSchema);

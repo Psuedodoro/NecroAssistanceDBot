@@ -1,12 +1,5 @@
 // TODO: Fix logic on command
-import Eris, {
-	ActionRow,
-	ComponentInteraction,
-	Embed,
-	Member,
-	User,
-	VoiceChannel,
-} from "eris";
+import Eris, { ActionRow, ComponentInteraction, Embed, Member, User, VoiceChannel } from "eris";
 import { bot } from "../..";
 import { EmeraldCollector } from "../../emerald_module/collectors/EmeraldButtonInteractions";
 import { BCommand } from "../../structures/Command";
@@ -28,15 +21,7 @@ export default new BCommand({
 	],
 
 	run: async ({ interaction }) => {
-		await interaction.createMessage(
-			"This command is currently broken. A fix will come soon."
-		);
-		return;
-
-		const vchannel = interaction.data.resolved.channels.values().next()
-			.value as VoiceChannel;
-
-		console.log(vchannel.voiceMembers);
+		const vchannel = bot.getChannel(interaction.data.options[0].value as string) as VoiceChannel;
 
 		const interactionUserInGuild = interaction.member;
 
@@ -62,17 +47,12 @@ export default new BCommand({
 			});
 		}
 
-		const defaultUsersInVC = vchannel.voiceMembers.filter((m) =>
-			defaultPeople.includes(m.id)
-		);
-
-		console.log(defaultUsersInVC);
+		const defaultUsersInVC = vchannel.voiceMembers.filter((m) => defaultPeople.includes(m.id));
 
 		// Get person to send the vc join request to
 		var chosenPerson: Member;
 		if (defaultUsersInVC.length > 0) {
-			chosenPerson =
-				defaultUsersInVC[Math.floor(Math.random() * defaultUsersInVC.length)];
+			chosenPerson = defaultUsersInVC[Math.floor(Math.random() * defaultUsersInVC.length)];
 		} else if (defaultUsersInVC.length === 1) {
 			chosenPerson = defaultUsersInVC[0];
 		} else {
@@ -105,26 +85,24 @@ export default new BCommand({
 
 		const requestEmbed: Embed = {
 			title: "Accept the VC join request?",
-			description: `${interaction.user.username} wants to join your voice channel, and you have been selected at random to accept the request!\nPlease press the corresponding button to allow the user to either join or leave.`,
+			description: `${interaction.member.user.username} wants to join your voice channel, and you have been selected at random to accept the request!\nPlease press the corresponding button to allow the user to either join or leave.`,
 			type: "rich",
 			color: 0xefb859,
 		};
 
-		const requestMessage = await (
-			await chosenPerson.user.getDMChannel()
-		).createMessage({
+		const chosenPersonDMChannel = await chosenPerson.user.getDMChannel();
+		const requestMessage = await chosenPersonDMChannel.createMessage({
 			embeds: [requestEmbed],
 			components: [requestrow],
 		});
 
-		const filter = (i: ComponentInteraction) => {
-			return i.member.id === chosenPerson.user.id;
-		};
+		const filter = (i: ComponentInteraction) =>
+			i.user.id === chosenPerson.user.id && i.channel.id === chosenPersonDMChannel.id && i.message.id === requestMessage.id;
 
 		const collector = new EmeraldCollector({
 			client: bot,
 			filter: filter,
-			time: 1000,
+			time: 5 * 60 * 1000,
 		});
 
 		collector.on("collect", async (i: ComponentInteraction) => {
@@ -152,9 +130,7 @@ export default new BCommand({
 					channelID: vcToMoveTo,
 				});
 
-				await (
-					await interaction.user.getDMChannel()
-				).createMessage({
+				await chosenPersonDMChannel.createMessage({
 					embeds: [
 						{
 							title: `You Have Been Accepted Into The Voice Channel!`,
@@ -182,9 +158,7 @@ export default new BCommand({
 
 				await requestMessage.edit({ embeds: [updatedEmbed] });
 
-				await (
-					await interaction.user.getDMChannel()
-				).createMessage({
+				await chosenPersonDMChannel.createMessage({
 					embeds: [
 						{
 							title: `You Have Been Denied Your VC Join Request!`,
@@ -195,6 +169,10 @@ export default new BCommand({
 				});
 				return;
 			}
+		});
+
+		collector.on("end", async () => {
+			console.log("The VC Request Ended!");
 		});
 	},
 });

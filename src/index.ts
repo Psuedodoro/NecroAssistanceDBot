@@ -12,6 +12,7 @@ export const bot = new BetterClient(
 	botToken,
 	{
 		intents: ["allNonPrivileged"],
+		restMode: true,
 	},
 	guildID
 );

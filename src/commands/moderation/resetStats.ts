@@ -9,10 +9,9 @@ export default new BCommand({
 	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 
 	run: async ({ interaction }) => {
-		if (!(interaction.user.id === "930744788859359282")) {
-			interaction.createMessage(
-				"You do not have permission to use this command!"
-			);
+		if (!(interaction.member.user.id === "930744788859359282")) {
+			interaction.createMessage("You do not have permission to use this command!");
+			return;
 		}
 
 		interaction.createMessage({

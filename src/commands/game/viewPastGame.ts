@@ -21,23 +21,21 @@ export default new BCommand({
 		const enteredGameID = interaction.data.options[0].value as string;
 
 		if (!enteredGameID) {
-			interaction.createMessage("Please specify a game ID.!");
+			interaction.createMessage("Please specify a game ID!");
 			return;
 		}
 
 		if (enteredGameID.length !== 5) {
-			interaction.createMessage("Please specify a valid game ID.!");
+			interaction.createMessage("Please specify a **valid** game ID!");
 			return;
 		}
 
 		const game = await RankedGame.findOne({
-			enteredGameID,
+			gameRef: enteredGameID,
 		});
 
 		if (!game) {
-			interaction.createMessage(
-				"No game has been found with that ID, please try again :D"
-			);
+			interaction.createMessage("No game has been found with that ID, please try again :D");
 			return;
 		}
 

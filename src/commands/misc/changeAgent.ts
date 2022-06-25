@@ -1,7 +1,8 @@
-import Eris, { Embed, EmbedField, TextChannel } from "eris";
+import Eris, { Embed, EmbedField, Message, TextChannel } from "eris";
 import { bot } from "../../index";
 import { BCommand } from "../../structures/Command";
 import User from "../../schemas/User";
+import { rosterChannelID } from "../../../config.json";
 
 import allAgents from "../../data/valorantAgents.json";
 
@@ -12,7 +13,7 @@ export default new BCommand({
 	options: [
 		{
 			name: "agent-1",
-			description: "The first agent to reserve",
+			description: "The first agent to reserve (your primary agent)",
 			type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
 			required: true,
 			choices: allAgents,
@@ -27,82 +28,67 @@ export default new BCommand({
 	],
 
 	run: async ({ interaction }) => {
-		await interaction.createMessage(
-			"This command is currently broken. A fix will come soon."
-		);
-		return;
+		const rosterChannel = bot.getChannel(rosterChannelID) as TextChannel;
+		let msg = (await rosterChannel.getMessages({ limit: 5 })).filter((m) => m.author.id === bot.user.id);
 
-		const agent1 = interaction.data.options.find((o) => o.name === "agent-1")
-			.value as string;
-		const agent2 = interaction.data.options.find((o) => o.name === "agent-2")
-			.value as string;
+		const agent1 = interaction.data.options.find((o) => o.name === "agent-1").value as string;
+		const agent2 = interaction.data.options.find((o) => o.name === "agent-2").value as string;
 
-		// Check if there is a message already from the bot in the channel
-		const rosterChannel = bot.guilds
-			.get(bot.guildID)
-			.channels.get("961380756444307496") as TextChannel;
-
-		const messages = await rosterChannel.messages;
-
-		const message = await messages.find(
-			(message) => message.author.id === bot.user.id
-		);
-
-		const agentsDocument = await User.findOne({
-			discordID: interaction.user.id,
+		// Get user from database via discord id
+		const user = await User.findOne({
+			discordID: interaction.member.id,
 		});
 
-		if (!agentsDocument) {
-			interaction.createMessage(
-				"Please do /register to be able to use this command!"
-			);
+		if (user.agentChangeCooldown > Date.now()) {
+			const timeLeft = user.agentChangeCooldown - Date.now();
+			const timeLeftString = `${Math.floor(timeLeft / 1000 / 60)} minutes and ${Math.floor((timeLeft / 1000) % 60)} seconds`;
+			interaction.createMessage({ content: `You must wait ${timeLeftString} before changing your agents again.`, flags: 64 });
 			return;
+		} else {
+			user.agentChangeCooldown = Date.now() + 86400000; // +24 Hours
 		}
 
-		agentsDocument.agents = {
-			main: agent1,
-			backup: agent2,
-		};
-
-		await agentsDocument.save();
-
-		const allUsers = await User.find({}).where("agents.main").ne(null);
-
-		const allServerMembers = bot.guilds.get(interaction.guildID).members;
-
-		let toAddFields: EmbedField[];
-		allServerMembers.map((member) => {
-			const isUserInAllUsers = allUsers.find(
-				(user) => user.discordID === member.id
+		if (!user)
+			return await interaction.createMessage(
+				"No user found. Either register or try again later.\nIf the error persists, please report it to the bot owner."
 			);
 
-			if (isUserInAllUsers) {
-				toAddFields.push({
-					name: `${member.user.username}`,
-					value: `Main: ${isUserInAllUsers.agents.main}\nBackup: ${isUserInAllUsers.agents.backup}`,
-					inline: false,
-				});
-			}
-		});
+		user.agents.main = agent1;
+		user.agents.backup = agent2;
 
-		const mainEmbed: Embed = {
-			type: "rich",
-			title: "Team Necro's Agent Roster!",
-			description: `This is the current agent reserve roster for Team Necro!`,
-			fields: toAddFields,
-			color: 0x0099ff,
-		};
+		await user.save();
 
-		if (message) {
-			message.edit({ embeds: [mainEmbed] });
-		} else {
-			rosterChannel.createMessage({
-				embeds: [mainEmbed],
+		var allUsers = (
+			await User.find({}).where("agents.main").ne(null).select("discordID agents.main agents.backup suspended")
+		).filter((u) => u.suspended === false);
+
+		const fields = [];
+
+		for (const user of allUsers) {
+			fields.push({
+				name: `${
+					bot.users.get(user.discordID)
+						? bot.users.get(user.discordID).username
+						: (await bot.getRESTUser(user.discordID)).username
+				}`,
+				value: `Main: ${user.agents.main}\nBackup: ${user.agents.backup}`,
+				inline: false,
 			});
 		}
 
-		await interaction.createMessage(
-			`Your agents have been updated to ${agent1} and ${agent2} as your backup reserve!`
-		);
+		const embed: Eris.Embed = {
+			type: "rich",
+			title: "Team Necro's Agent Roster!",
+			description: "This is the current agent reserve roster for Team Necro!",
+			fields,
+		};
+
+		if (msg && msg.length > 0 && msg[0]) {
+			await msg[0].edit({ embeds: [embed] });
+		} else {
+			await rosterChannel.createMessage({ embeds: [embed] });
+		}
+
+		await interaction.createMessage("Agents changed successfully.");
 	},
 });

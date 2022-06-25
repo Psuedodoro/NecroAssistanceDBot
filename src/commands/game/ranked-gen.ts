@@ -31,15 +31,9 @@ export default new BCommand({
 	],
 
 	run: async ({ interaction }) => {
-		const doBanAgents = interaction.data.options.find(
-			(o) => o.name === "do-agent-banning"
-		).value as boolean;
+		const doBanAgents = interaction.data.options.find((o) => o.name === "do-agent-banning").value as boolean;
 
-		const _players = interaction.data.options
-			.find((o) => o.name === "players")
-			.value.toString();
-
-		console.log(_players, "eeee");
+		const _players = interaction.data.options.find((o) => o.name === "players").value.toString();
 
 		const interactionUserFromDB = await User.findOne({
 			discordID: interaction.member.id,
@@ -59,9 +53,7 @@ export default new BCommand({
 			return;
 		}
 
-		const playerIDs = players.map((player) =>
-			player.replace(/<@!?(\d+)>/, "$1")
-		);
+		const playerIDs = players.map((player) => player.replace(/<@!?(\d+)>/, "$1"));
 
 		//* Suspended Check
 		const usersFromDB = await User.find({
@@ -83,30 +75,23 @@ export default new BCommand({
 
 			await game.save();
 
-			const { selectedmapimage, gameMap, teamA, teamB, gameRef, bannedAgents } =
-				gameInfo;
+			const { selectedmapimage, gameMap, teamA, teamB, gameRef, bannedAgents } = gameInfo;
 
-			const teamAIDs = teamA.map((player) =>
-				player.replace(/<@!?(\d+)>/, "$1")
-			);
+			const teamAIDs = teamA.map((player) => player.replace(/<@!?(\d+)>/, "$1"));
 
-			const teamBIDs = teamB.map((player) =>
-				player.replace(/<@!?(\d+)>/, "$1")
-			);
+			const teamBIDs = teamB.map((player) => player.replace(/<@!?(\d+)>/, "$1"));
 
 			// make it so that banned agents variable is equal to "Nothing" if there are no banned agents
-			const bannedAgentsString = bannedAgents.length
-				? bannedAgents.join(", ")
-				: "No banned agents!";
+			const bannedAgentsString = bannedAgents.length ? bannedAgents.join(", ") : "No banned agents!";
 
-			if (players.length === 2) {
-				usersFromDB.forEach((user) => {
-					user.cooldown1v1 = DateTime.now().plus({
-						minutes: 60,
-					})["ts"];
+			for (let i = 0; i < usersFromDB.length; i++) {
+				const user = usersFromDB[i];
 
-					user.save();
-				});
+				user.cooldown1v1 = DateTime.now().plus({
+					minutes: 60,
+				})["ts"];
+
+				user.save();
 			}
 
 			interaction.channel.createMessage({
@@ -148,22 +133,16 @@ export default new BCommand({
 
 			const guild = bot.guilds.get(bot.guildID);
 
-			const generalVC = (await guild.channels.find(
-				(channel) => channel.id === "962385657794277466"
-			)) as Eris.VoiceChannel;
+			const generalVC = (await guild.channels.find((channel) => channel.id === "962385657794277466")) as Eris.VoiceChannel;
 
-			const teamAVC = "962385681148157992";
+			const teamAVC = "981259678904369152";
 			const teamBVC = "962385706158788618";
 
 			const generalVCMembers = generalVC.voiceMembers;
 
-			const teamAMembers = generalVCMembers.filter((member) =>
-				teamAIDs.includes(member.id)
-			);
+			const teamAMembers = generalVCMembers.filter((member) => teamAIDs.includes(member.id));
 
-			const teamBMembers = generalVCMembers.filter((member) =>
-				teamBIDs.includes(member.id)
-			);
+			const teamBMembers = generalVCMembers.filter((member) => teamBIDs.includes(member.id));
 
 			teamAMembers.forEach(async (member) => {
 				await member.edit({
@@ -182,45 +161,29 @@ export default new BCommand({
 		//* --- End of team generation etc stuff --- !//
 
 		// Suspension check
-		usersFromDB.forEach(async (user) => {
-			if (
-				user.suspended === true &&
-				(Math.round(Date.now() / 1000) > user.suspendedUntil ||
-					user.suspendedUntil === null)
-			) {
+		for (const user of usersFromDB) {
+			if (user.suspended === true && (Math.round(Date.now() / 1000) > user.suspendedUntil || user.suspendedUntil === null)) {
 				interaction.createMessage(
 					`<@${user.discordID}> is suspended and cannot play ranked games.\nSuspension reason: ${user.suspendedReason}`
+				);
+				return;
+			} else if (user.cooldown1v1 && user.cooldown1v1 > Date.now()) {
+				await interaction.createMessage(
+					`<@${user.discordID}> is on cooldown for 1v1. Please wait ${Math.round(
+						(user.cooldown1v1 - Date.now()) / 1000
+					)} seconds.`
 				);
 				return;
 			} else {
 				user.suspended = false;
 				user.suspendedUntil = null;
 			}
-		});
-
-		if (players.length === 2) {
-			for (const user of usersFromDB) {
-				if (user.cooldown1v1 && user.cooldown1v1 > Date.now()) {
-					await interaction.createMessage(
-						`<@${
-							user.discordID
-						}> is on cooldown and cannot play ranked games.\nCooldown ends in ${Math.round(
-							DateTime.fromMillis(user.cooldown1v1)
-								.diff(DateTime.now(), "minutes")
-								.toObject().minutes
-						)} minutes.`
-					);
-
-					return;
-				}
-			}
 		}
 
 		//* --- Game Starting Conformation Message --- *//
-		await interaction.createMessage({
-			content:
-				"Press on the check mark below to verify that you want to start and join the game.\n**You have 15 seconds to confirm.**",
-		});
+		await interaction.createMessage(
+			"Press on the check mark below to verify that you want to start and join the game.\n**You have 15 seconds to confirm.**"
+		);
 
 		const msgSent = (await interaction.getOriginalMessage()) as Message;
 
@@ -229,9 +192,7 @@ export default new BCommand({
 		const filter = ({ message, emoji, reactor }: emeraldCollectedReactions) => {
 			console.log("Filter has been run!");
 			return (
-				emoji.name === "✅" &&
-				!reactor.bot &&
-				playerIDs.includes(reactor.user.id) //* Only users who have signed up to the game can confirm!
+				emoji.name === "✅" && !reactor.bot && playerIDs.includes(reactor.user.id) //* Only users who have signed up to the game can confirm!
 			);
 		};
 
@@ -244,18 +205,15 @@ export default new BCommand({
 		var usersReacted = [];
 
 		//* COLLECTOR LISTENER EVENTS
-		collector.on(
-			"collect",
-			({ message, emoji, reactor }: emeraldCollectedReactions) => {
-				console.log("Reaction collected");
-				usersReacted.push(reactor.user.id);
+		collector.on("collect", ({ message, emoji, reactor }: emeraldCollectedReactions) => {
+			console.log("Reaction collected");
+			usersReacted.push(reactor.user.id);
 
-				if (usersReacted.length === playerIDs.length) {
-					collector.stopListening("Met player quota");
-					makeTeamsDoFinal(players);
-				}
+			if (usersReacted.length === playerIDs.length) {
+				collector.stopListening("Met player quota");
+				makeTeamsDoFinal(players);
 			}
-		);
+		});
 
 		collector.on("dispose", (reaction, user) => {
 			if (usersReacted.includes(user.id)) {
@@ -267,15 +225,9 @@ export default new BCommand({
 			console.log(usersReacted);
 
 			if (usersReacted.length !== playerIDs.length) {
-				const notReactedUsers = playerIDs
-					.filter((id) => !usersReacted.includes(id))
-					.map((id) => `<@!${id}>`);
+				const notReactedUsers = playerIDs.filter((id) => !usersReacted.includes(id)).map((id) => `<@!${id}>`);
 
-				interaction.channel.createMessage(
-					`The following players haven't accepted the game:\n${notReactedUsers.join(
-						", "
-					)}`
-				);
+				interaction.channel.createMessage(`The following players haven't accepted the game:\n${notReactedUsers.join(", ")}`);
 				return;
 			}
 		});
