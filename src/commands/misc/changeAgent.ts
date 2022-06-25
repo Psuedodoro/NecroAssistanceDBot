@@ -2,7 +2,7 @@ import Eris, { Embed, EmbedField, Message, TextChannel } from "eris";
 import { bot } from "../../index";
 import { BCommand } from "../../structures/Command";
 import User from "../../schemas/User";
-import { rosterChannelID } from "../../../config.json";
+const { rosterChannelID } = process.env;
 
 import allAgents from "../../data/valorantAgents.json";
 
