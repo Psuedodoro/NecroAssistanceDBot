@@ -28,12 +28,6 @@ export default new BCommand({
 	],
 
 	run: async ({ interaction }) => {
-		// TODO: Refactor this so that it is stored in one central file
-		const adminIDs = ["930744788859359282", "500320519455899658"];
-
-		if (!adminIDs.includes(interaction.member.user.id))
-			return interaction.createMessage({ flags: 64, content: "You do not have permission to use this command!" });
-
 		const rosterChannel = bot.getChannel(rosterChannelID) as TextChannel;
 		let msg = (await rosterChannel.getMessages({ limit: 5 })).filter((m) => m.author.id === bot.user.id);
 
