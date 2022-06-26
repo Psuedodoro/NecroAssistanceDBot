@@ -220,9 +220,9 @@ export default new BCommand({
 			}
 		});
 
-		collector.on("deleted", (reaction, user) => {
-			if (usersReacted.includes(user.id)) {
-				usersReacted.splice(usersReacted.indexOf(user.id), 1);
+		collector.on("deleted", ({ message, emoji, userID }) => {
+			if (usersReacted.includes(userID)) {
+				usersReacted.splice(usersReacted.indexOf(userID), 1);
 			}
 		});
 
