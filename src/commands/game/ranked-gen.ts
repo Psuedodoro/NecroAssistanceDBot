@@ -33,13 +33,14 @@ export default new BCommand({
 	run: async ({ interaction }) => {
 		const doBanAgents = interaction.data.options.find((o) => o.name === "do-agent-banning").value as boolean;
 
-		const _players = interaction.data.options.find((o) => o.name === "players").value.toString();
+		let _players = interaction.data.options.find((o) => o.name === "players").value.toString();
+
+		let players = _players.match(/<@!?(\d+)>/g);
+		players = [...new Set(players)];
 
 		const interactionUserFromDB = await User.findOne({
 			discordID: interaction.member.id,
 		});
-
-		const players = _players.match(/<@!?(\d+)>/g);
 
 		if (!players || players.length < 2) {
 			interaction.createMessage("You need to enter at least 2 players!");
@@ -215,7 +216,7 @@ export default new BCommand({
 			}
 		});
 
-		collector.on("dispose", (reaction, user) => {
+		collector.on("deleted", (reaction, user) => {
 			if (usersReacted.includes(user.id)) {
 				usersReacted.splice(usersReacted.indexOf(user.id), 1);
 			}
