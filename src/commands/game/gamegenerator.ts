@@ -17,19 +17,14 @@ export default new BCommand({
 	],
 
 	run: async ({ interaction }) => {
-		const results = (interaction.data.options[0].value as string).match(
-			/<@!?(\d+)>/g
-		);
+		const results = (interaction.data.options[0].value as string).match(/<@!?\d{18}>/g);
 
 		if (!results || results.length < 2) {
 			interaction.createMessage("You need to enter at least 2 players!");
 			return;
 		}
 
-		const { teamA, teamB, selectedmapimage, gameMap } = makeTeams(
-			results,
-			false
-		);
+		const { teamA, teamB, selectedmapimage, gameMap } = makeTeams(results, false);
 
 		interaction.createMessage({
 			embeds: [

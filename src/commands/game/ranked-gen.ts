@@ -35,7 +35,7 @@ export default new BCommand({
 
 		let _players = interaction.data.options.find((o) => o.name === "players").value.toString();
 
-		let players = _players.match(/<@!?(\d+)>/g);
+		let players = _players.match(/<@!?\d{18}>/g);
 		players = [...new Set(players)];
 
 		const interactionUserFromDB = await User.findOne({
@@ -62,6 +62,12 @@ export default new BCommand({
 				$in: playerIDs,
 			},
 		});
+
+		if (usersFromDB.length !== playerIDs.length) {
+			return await interaction.createMessage(
+				"Sorry, but some of the players you entered do not exist in the database/not found.\nIf the error occurs, please contact the bot owner."
+			);
+		}
 
 		//* --- THIS MAKES THE TEAMS - MOST IMPORTANT PART! --- !//
 		const makeTeamsDoFinal = async (playersArg) => {
