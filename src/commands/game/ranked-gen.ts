@@ -4,7 +4,7 @@ import { BCommand } from "../../structures/Command";
 import makeTeams from "../../functions/teamsGenerator";
 import awaitTimeout from "../../functions/awaitTimeout";
 
-import Eris, { Message, VoiceChannel } from "eris";
+import Eris, { Message } from "eris";
 
 import { DateTime } from "luxon";
 import { bot } from "../..";
@@ -17,15 +17,15 @@ export default new BCommand({
 	type: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
 	options: [
 		{
+			type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
 			name: "players",
 			description: "Enter all the players that you want to add to the game.",
-			type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
 			required: true,
 		},
 		{
+			type: Eris.Constants.ApplicationCommandOptionTypes.BOOLEAN,
 			name: "do-agent-banning",
 			description: "Do you want to be able to ban agents?",
-			type: Eris.Constants.ApplicationCommandOptionTypes.BOOLEAN,
 			required: true,
 		},
 	],
@@ -37,10 +37,6 @@ export default new BCommand({
 
 		let players = _players.match(/<@!?\d{18}>/g);
 		players = [...new Set(players)];
-
-		const interactionUserFromDB = await User.findOne({
-			discordID: interaction.member.id,
-		});
 
 		if (!players || players.length < 2) {
 			interaction.createMessage("You need to enter at least 2 players!");
@@ -140,7 +136,7 @@ export default new BCommand({
 
 			const guild = bot.guilds.get(bot.guildID);
 
-			const generalVC = (await guild.channels.find((channel) => channel.id === "962385657794277466")) as Eris.VoiceChannel;
+			const generalVC = guild.channels.find((channel) => channel.id === "962385657794277466") as Eris.VoiceChannel;
 
 			const teamAVC = "981259678904369152";
 			const teamBVC = "962385706158788618";
@@ -189,7 +185,9 @@ export default new BCommand({
 
 		//* --- Game Starting Conformation Message --- *//
 		await interaction.createMessage(
-			"Press on the check mark below to verify that you want to start and join the game.\n**You have 15 seconds to confirm.**"
+			`Press on the check mark below to verify that you want to start and join the game.\n**You have 15 seconds to confirm.**\n${players.join(
+				" "
+			)}`
 		);
 
 		const msgSent = (await interaction.getOriginalMessage()) as Message;
@@ -199,7 +197,7 @@ export default new BCommand({
 		const filter = ({ message, emoji, reactor }: emeraldCollectedReactions) => {
 			console.log("Filter has been run!");
 			return (
-				emoji.name === "✅" && !reactor.bot && playerIDs.includes(reactor.user.id) //* Only users who have signed up to the game can confirm!
+				emoji.name === "✅" && !reactor.bot && playerIDs.includes(reactor.user.id) && message.id === msgSent.id //* Only users who have signed up to the game can confirm!
 			);
 		};
 
