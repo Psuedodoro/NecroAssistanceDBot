@@ -130,7 +130,9 @@ export default new BCommand({
 					channelID: vcToMoveTo,
 				});
 
-				await chosenPersonDMChannel.createMessage({
+				await (
+					await interaction.member.user.getDMChannel()
+				).createMessage({
 					embeds: [
 						{
 							title: `You Have Been Accepted Into The Voice Channel!`,
@@ -158,7 +160,9 @@ export default new BCommand({
 
 				await requestMessage.edit({ embeds: [updatedEmbed] });
 
-				await chosenPersonDMChannel.createMessage({
+				await (
+					await interaction.member.user.getDMChannel()
+				).createMessage({
 					embeds: [
 						{
 							title: `You Have Been Denied Your VC Join Request!`,

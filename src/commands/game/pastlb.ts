@@ -10,6 +10,7 @@ export default new BCommand({
 	run: async ({ interaction }) => {
 		if (!(interaction.member.user.id === "930744788859359282")) {
 			interaction.createMessage("You do not have permission to use this command!");
+			return;
 		}
 
 		var users = await PastUserStats.find({})
