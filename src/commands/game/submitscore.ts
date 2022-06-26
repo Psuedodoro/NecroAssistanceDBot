@@ -46,12 +46,9 @@ export default new BCommand({
 			7 winstreak: 8 
 		*/
 
-		const gameID = interaction.data.options.find((o) => o.name === "game-id")
-			.value as string;
+		const gameID = interaction.data.options.find((o) => o.name === "game-id").value as string;
 
-		const winningTeam = interaction.data.options.find(
-			(o) => o.name === "winning-team"
-		).value as string;
+		const winningTeam = interaction.data.options.find((o) => o.name === "winning-team").value as string;
 
 		if (gameID.length !== 5) {
 			interaction.createMessage("The game ID must be 5 characters long!");
@@ -75,9 +72,7 @@ export default new BCommand({
 		}
 
 		//* Team user stuff
-		const teamA = selectedGame.teamA.map((player) =>
-			player.replace(/[<@!>]/g, "")
-		);
+		const teamA = selectedGame.teamA.map((player) => player.replace(/[<@!>]/g, ""));
 
 		var teamAUsers = await User.find({
 			discordID: {
@@ -85,9 +80,7 @@ export default new BCommand({
 			},
 		});
 
-		const teamB = selectedGame.teamB.map((player) =>
-			player.replace(/[<@!>]/g, "")
-		);
+		const teamB = selectedGame.teamB.map((player) => player.replace(/[<@!>]/g, ""));
 
 		var teamBUsers = await User.find({
 			discordID: {
@@ -122,11 +115,9 @@ export default new BCommand({
 
 				//* Winstreak calculations
 				let winstreak = 0;
-				let lastWin = 0;
 
 				for (let i = 0; i < userA.gamehistory.length; i++) {
 					if (userA.gamehistory[i] === 1) {
-						lastWin = i;
 						winstreak++;
 					} else {
 						winstreak = 0;
@@ -157,11 +148,9 @@ export default new BCommand({
 
 				//* Winstreak calculations
 				let winstreak = 0;
-				let lastWin = 0;
 
 				for (let i = 0; i < userB.gamehistory.length; i++) {
 					if (userB.gamehistory[i] === 1) {
-						lastWin = i;
 						winstreak++;
 					} else {
 						winstreak = 0;
@@ -204,5 +193,8 @@ export default new BCommand({
 			users[i].lbpos = i + 1;
 			users[i].save();
 		}
+
+		selectedGame.scoreSubmitted = true;
+		selectedGame.save();
 	},
 });

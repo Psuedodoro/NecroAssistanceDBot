@@ -18,8 +18,7 @@ export default new BCommand({
 	],
 
 	run: async ({ interaction }) => {
-		const gameref = interaction.data.options.find((o) => o.name === "game-id")
-			.value as string;
+		const gameref = interaction.data.options.find((o) => o.name === "game-id").value as string;
 
 		const gameExists = await RankedGame.findOne({
 			gameRef: gameref,
@@ -33,9 +32,7 @@ export default new BCommand({
 		gameExists.scoreSubmitted = false;
 
 		// Combine 2 arrays
-		const allPlayers: string[] = [...gameExists.teamA, ...gameExists.teamB].map(
-			(user) => user.replace(/[<>!@]/g, "")
-		);
+		const allPlayers: string[] = [...gameExists.teamA, ...gameExists.teamB].map((user) => user.replace(/[<>!@]/g, ""));
 
 		const usersFromDB = await User.find({
 			discordID: { $in: allPlayers },
@@ -51,10 +48,13 @@ export default new BCommand({
 
 			if (user.gamehistory[user.gamehistory.length - 1] === 0) {
 				user.gamehistory.pop();
-				user.losses--;
+
+				if (user.losses <= 0) user.losses = 0;
+				else user.losses--;
 			} else {
 				user.gamehistory.pop();
-				user.wins--;
+				if (user.wins <= 0) user.wins = 0;
+				else user.wins--;
 			}
 
 			if (user.gamehistory.length === 0) {

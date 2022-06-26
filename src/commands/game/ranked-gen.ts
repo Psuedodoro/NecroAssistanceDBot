@@ -74,6 +74,7 @@ export default new BCommand({
 				gameRef: gameInfo.gameRef,
 				teamA: gameInfo.teamA,
 				teamB: gameInfo.teamB,
+				scoreSubmitted: false,
 			});
 
 			await game.save();
