@@ -104,10 +104,6 @@ export default new BCommand({
 			],
 		};
 
-		const disabledrow = { ...buttonRow };
-		disabledrow.components[0].disabled = true;
-		disabledrow.components[1].disabled = true;
-
 		let page = 0;
 
 		await interaction.createMessage({
@@ -124,7 +120,7 @@ export default new BCommand({
 		const collector = new EmeraldCollector({
 			client: bot,
 			filter,
-			time: 300 * 1000,
+			time: 40 * 60 * 1000,
 		});
 
 		collector.on("collect", async (i: ComponentInteraction) => {
@@ -151,6 +147,10 @@ export default new BCommand({
 		});
 
 		collector.on("end", () => {
+			const disabledrow = { ...buttonRow };
+			disabledrow.components[0].disabled = true;
+			disabledrow.components[1].disabled = true;
+
 			msg.edit({ components: [disabledrow] });
 		});
 	},
