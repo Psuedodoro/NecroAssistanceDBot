@@ -47,7 +47,7 @@ export default new BCommand({
 			return;
 		}
 
-		if (players.length % 2 !== 0) {
+		if (players.length === 2) {
 			interaction.createMessage(
 				"You need to enter an even number of players to play a ranked game (this is to calculate ELO and more)."
 			);
