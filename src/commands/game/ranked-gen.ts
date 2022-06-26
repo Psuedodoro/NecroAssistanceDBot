@@ -47,7 +47,7 @@ export default new BCommand({
 			return;
 		}
 
-		if (players.length === 2) {
+		if (!(players.length % 2 === 0)) {
 			interaction.createMessage(
 				"You need to enter an even number of players to play a ranked game (this is to calculate ELO and more)."
 			);
@@ -174,7 +174,7 @@ export default new BCommand({
 					`<@${user.discordID}> is suspended and cannot play ranked games.\nSuspension reason: ${user.suspendedReason}`
 				);
 				return;
-			} else if (user.cooldown1v1 && user.cooldown1v1 > Date.now()) {
+			} else if (usersFromDB.length === 2 && user.cooldown1v1 && user.cooldown1v1 > Date.now()) {
 				await interaction.createMessage(
 					`<@${user.discordID}> is on cooldown for 1v1. Please wait ${Math.round(
 						(user.cooldown1v1 - Date.now()) / 1000
