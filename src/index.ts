@@ -13,7 +13,7 @@ export const otype = Eris.Constants.ApplicationCommandOptionTypes;
 export const bot = new BetterClient(
 	botToken,
 	{
-		intents: ["allNonPrivileged"],
+		intents: ["allNonPrivileged", "guildMembers", "guilds"],
 		restMode: true,
 	},
 	guildID

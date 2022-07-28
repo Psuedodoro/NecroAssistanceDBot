@@ -22,6 +22,7 @@ export interface IUser {
 	rank: string;
 	cooldown1v1: number;
 	agentChangeCooldown: number;
+	optOutNameChange: boolean;
 }
 
 const userSchema = new mongoose.Schema<IUser>({
@@ -44,6 +45,7 @@ const userSchema = new mongoose.Schema<IUser>({
 	rank: String,
 	cooldown1v1: Number,
 	agentChangeCooldown: Number,
+	optOutNameChange: Boolean,
 });
 
 export default mongoose.model<IUser>("User", userSchema);
