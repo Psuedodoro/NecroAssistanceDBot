@@ -3,6 +3,8 @@ import { BCommand } from "../../structures/Command";
 import axios from "axios";
 import { bot } from "../..";
 import User from "../../schemas/User";
+import dotenv from "dotenv";
+dotenv.config();
 
 export default new BCommand({
 	name: "namedef",
@@ -48,7 +50,7 @@ export default new BCommand({
 			var defs: any[] = await (
 				await axios.get(`https://wordsapiv1.p.rapidapi.com/words/${nick}/definitions`, {
 					headers: {
-						"X-RapidAPI-Key": "7002f7b421msh2ae07c07e1e24cfp1c6503jsnee60897ec4c1",
+						"X-RapidAPI-Key": process.env.rapidAPIKey,
 						"X-RapidAPI-Host": "wordsapiv1.p.rapidapi.com",
 					},
 				})
