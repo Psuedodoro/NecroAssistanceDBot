@@ -1,10 +1,9 @@
 import Eris from "eris";
 import { BCommand } from "../../structures/Command";
-import axios from "axios";
 import { bot } from "../..";
 import User from "../../schemas/User";
-import dotenv from "dotenv";
-dotenv.config();
+
+import dictionary from "../../data/dict.json";
 
 export default new BCommand({
 	name: "namedef",
@@ -41,37 +40,16 @@ export default new BCommand({
 			member = interaction.member;
 		}
 
-		const nick = encodeURIComponent(member.nick);
-
-		if (nick === null)
-			return interaction.createMessage({ flags: 64, content: "The user selected has no nickname in the server!" });
-
-		try {
-			var defs: any[] = await (
-				await axios.get(`https://wordsapiv1.p.rapidapi.com/words/${nick}/definitions`, {
-					headers: {
-						"X-RapidAPI-Key": process.env.rapidAPIKey,
-						"X-RapidAPI-Host": "wordsapiv1.p.rapidapi.com",
-					},
-				})
-			).data.definitions;
-		} catch {
-			return interaction.createMessage({ flags: 64, content: "Your name does not exist in the english dictionary." });
-		}
-
-		if (defs.length <= 0 || !defs[0])
-			return interaction.createMessage({ flags: 64, content: "Your name does not exist in the english dictionary." });
+		const nick = member.nick;
+		const wordObj = (dictionary as any[]).find((w) => w.word === nick.toUpperCase());
+		const defs: string[] = wordObj.definitions;
 
 		let embed: Eris.Embed = {
 			type: "rich",
 			color: 0xfc0303,
 			title: `Definition for ${nick}`,
+			description: `${defs.join("\n")}`,
 		};
-
-		let fields: Eris.EmbedField[] = [];
-		for (const def of defs) fields.push({ name: def.partOfSpeech, value: def.definition });
-
-		embed.fields = fields;
 
 		interaction.createMessage({ embeds: [embed] });
 	},

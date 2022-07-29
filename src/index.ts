@@ -1,4 +1,4 @@
-import Eris, { Client, type ApplicationCommand } from "eris";
+import Eris from "eris";
 import mongoose from "mongoose";
 import { BetterClient } from "./structures/Client";
 

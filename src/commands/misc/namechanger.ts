@@ -1,8 +1,10 @@
 import Eris from "eris";
 import { BCommand } from "../../structures/Command";
-import axios from "axios";
 import { bot } from "../..";
 import User from "../../schemas/User";
+import { randomArrItem, randomObjKey } from "../../functions/util";
+
+import dictionary from "../../data/dict.json";
 
 export default new BCommand({
 	name: "namerandom",
@@ -20,10 +22,10 @@ export default new BCommand({
 			const userFromDB = await User.findOne({ discordID: m.user.id });
 			if (userFromDB && userFromDB.optOutNameChange !== null && userFromDB.optOutNameChange === true) continue;
 
-			const name = await (await axios.get("https://random-word-api.herokuapp.com/word")).data;
+			const randName = randomArrItem(dictionary).word.toLowerCase();
 
 			await m.edit({
-				nick: name[0],
+				nick: randName,
 			});
 		}
 
